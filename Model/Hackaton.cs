@@ -13,20 +13,16 @@ namespace Hackathon.Model
         {
             GenerateRandomPreferences();
 
-            var pairs = _hrManager.AssignTeams(_juniors, _teamLeads);
+            var teams = _hrManager.AssignTeams(_juniors, _teamLeads);
 
-            foreach (var pair in pairs)
+            foreach (var team in teams)
             {
-                pair.Item1.AssignedPartner = pair.Item2.Name;
-                pair.Item2.AssignedPartner = pair.Item1.Name;
-                //Console.WriteLine($"Джун: {pair.Item1.Name} - Тимлид: {pair.Item2.Name}");
-                pair.Item1.CalculateSatisfactionIndex();
-                pair.Item2.CalculateSatisfactionIndex();
+
+                team.Junior.CalculateSatisfactionIndex();
+                team.TeamLead.CalculateSatisfactionIndex();
             }
 
-            List<Participant> allParticipants = new List<Participant>();
-            allParticipants.AddRange(_juniors);
-            allParticipants.AddRange(_teamLeads);
+            List<Participant> allParticipants = [.. _juniors, .. _teamLeads];
 
             return HRDirector.ComputeHarmonicity(allParticipants);
         }

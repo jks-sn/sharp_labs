@@ -5,6 +5,6 @@ namespace Hackathon.Strategy
 {
     public interface IAssignmentStrategy
     {
-        List<(Junior, TeamLead)> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads);
+        List<Team> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads);
     }
 }

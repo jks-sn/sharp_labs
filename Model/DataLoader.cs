@@ -13,9 +13,6 @@ namespace Hackathon.Model
             {
                 var parts = line.Split(';');
                 var name = parts[1].Trim();
-                
-                //Console.WriteLine($"Имя: '{name}' (длина: {name.Length})");
-
                 return new Junior { Name = name };
             }).ToList();
         }
@@ -29,7 +26,6 @@ namespace Hackathon.Model
             {
                 var parts = line.Split(';');
                 var name = parts[1].Trim();
-                //Console.WriteLine($"Имя: '{name}' (длина: {name.Length})");
                 teamLeads.Add(new TeamLead { Name = name });
             }
 
