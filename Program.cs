@@ -1,43 +1,29 @@
-
+// Program.cs
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Hackathon.Model;
 using Hackathon.Strategy;
 
-namespace Hackathon
+namespace HackathonSimulation
 {
     class Program
     {
-        static void Main()
+        public static async Task Main(string[] args)
         {
-            var juniors = DataLoader.LoadJuniors("./data/Juniors20.csv");
-            var teamLeads = DataLoader.LoadTeamLeads("./data/Teamleads20.csv");
-            
-            HRDirector hrDirector = new HRDirector();
-            IAssignmentStrategy strategy = new GaleShapleyStrategy();
-            HRManager hrManager = new HRManager(strategy);
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddSingleton<DataLoader>();
+                    services.AddSingleton<HRDirector>();
+                    services.AddSingleton<IAssignmentStrategy, GaleShapleyStrategy>();
+                    services.AddSingleton<HRManager>();
 
-            double totalHarmonicity = 0;
-            int hackathonCount = 1000;
+                    services.AddHostedService<HackathonHostedService>();
+                })
+                .Build();
 
-            for (int i = 0; i < hackathonCount; i++)
-            {
-                var juniorsClone = juniors.Select(j => new Junior { Name = j.Name }).ToList();
-                var teamLeadsClone = teamLeads.Select(tl => new TeamLead { Name = tl.Name }).ToList();
-
-                Model.Hackathon hackathon = new Model.Hackathon(juniorsClone, teamLeadsClone, hrManager);
-                double harmonicity = hackathon.RunHackathon();
-                totalHarmonicity += harmonicity;
-
-                Console.WriteLine($"Хакатон {i + 1}: Гармоничность = {harmonicity:F2}");
-            }
-
-            double averageHarmonicity = totalHarmonicity / hackathonCount;
-            Console.WriteLine($"\nСредняя гармоничность по {hackathonCount} хакатонам: {averageHarmonicity:F2}");
+            await host.RunAsync();
         }
     }
 }
-
-
-//DataLoader
-//Junior Teamled classes
-//Wishlist
-//
