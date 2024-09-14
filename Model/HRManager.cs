@@ -9,7 +9,7 @@ namespace Hackathon.Model
     {
         private IAssignmentStrategy _strategy = strategy;
 
-        public List<(Junior, TeamLead)> AssignTeams(List<Junior> juniors, List<TeamLead> teamLeads)
+        public List<Team> AssignTeams(List<Junior> juniors, List<TeamLead> teamLeads)
         {
             return _strategy.AssignPairs(juniors, teamLeads);
         }

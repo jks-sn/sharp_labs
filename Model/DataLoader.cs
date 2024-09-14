@@ -15,7 +15,6 @@ namespace Hackathon.Model
                 var name = "";
                 if(parts.Length >= 2) { 
                     name = parts[1].Trim();
-                    //Console.WriteLine($"Имя: '{name}' (длина: {name.Length})");
                 }
                 return new Junior { Name = name };
             }).ToList();
@@ -32,7 +31,6 @@ namespace Hackathon.Model
                 if (parts.Length >= 2)
                 {
                     var name = parts[1].Trim();
-                    //Console.WriteLine($"Имя: '{name}' (длина: {name.Length})");
                     teamLeads.Add(new TeamLead { Name = name });
                 }
             }

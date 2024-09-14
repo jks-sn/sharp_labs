@@ -6,7 +6,7 @@ namespace Hackathon.Strategy
 {
     public class GaleShapleyStrategy : IAssignmentStrategy
     {
-        public List<(Junior, TeamLead)> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads)
+        public List<Team> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads)
         {
             var freeJuniors = new Queue<Junior>(juniors);
             var teamLeadEngagements = new Dictionary<string, string>(); // TeamLeadName -> JuniorName
@@ -50,15 +50,15 @@ namespace Hackathon.Strategy
             }
 
             // Формирование списка пар
-            var pairs = new List<(Junior, TeamLead)>();
+            var teams = new List<Team>();
             foreach (var engagement in teamLeadEngagements)
             {
                 var teamLead = teamLeadDict[engagement.Key];
                 var junior = juniorDict[engagement.Value];
-                pairs.Add((junior, teamLead));
+                teams.Add(new Team(junior, teamLead));
             }
 
-            return pairs;
+            return teams;
         }
     }
 }
