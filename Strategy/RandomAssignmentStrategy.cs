@@ -15,8 +15,6 @@ namespace Hackathon.Strategy
 
             for (int i = 0; i < juniors.Count; i++)
             {
-                //Console.WriteLine($"Количество предпочтений для джуна {juniors[i].Name}: {juniors[i].WishList.Count}");
-                //Console.WriteLine($"Количество предпочтений для тимлида {shuffledTeamLeads[i].Name}: {shuffledTeamLeads[i].WishList.Count}");
                 teams.Add(new Team(juniors[i], shuffledTeamLeads[i]));
             }
 
