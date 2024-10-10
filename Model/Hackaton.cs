@@ -1,46 +1,39 @@
-// Hackathon.cs
+// Model/Hackathon.cs
 
-using Hackathon.Model;
-
-namespace Hackathon.Model
+namespace Hackathon.Model;
+public class Hackathon(HRManager hrManager, HRDirector hrDirector)
 {
-    public class Hackathon(List<Junior> juniors, List<TeamLead> teamLeads, HRManager hrManager, HRDirector hrDirector)
+    private readonly List<Junior> _juniors = hrDirector.LoadJuniors();
+    private readonly List<TeamLead> _teamLeads = hrDirector.LoadTeamLeads();
+    public double Run()
     {
-        private readonly List<Junior> _juniors = juniors;
-        private readonly List<TeamLead> _teamLeads = teamLeads;
-        private readonly HRManager _hrManager = hrManager;
-        private readonly HRDirector _hrDirector = hrDirector;
+        GenerateRandomPreferences();
 
-        public double RunHackathon()
+        var teams = hrManager.AssignTeams(_juniors, _teamLeads);
+
+        foreach (var team in teams)
         {
-            GenerateRandomPreferences();
-
-            var teams = _hrManager.AssignTeams(_juniors, _teamLeads);
-
-            foreach (var team in teams)
-            {
-                team.Junior.CalculateSatisfactionIndex();
-                team.TeamLead.CalculateSatisfactionIndex();
-            }
-
-            List<Participant> allParticipants = [.. _juniors, .. _teamLeads];
-
-            return _hrDirector.ComputeHarmonicity(allParticipants);
+            team.Junior.CalculateSatisfactionIndex();
+            team.TeamLead.CalculateSatisfactionIndex();
         }
 
-        private void GenerateRandomPreferences()
+        List<Participant> allParticipants = [.. _juniors, .. _teamLeads];
+
+        return hrDirector.ComputeHarmonic(allParticipants);
+    }
+
+    private void GenerateRandomPreferences()
+    {
+        var random = new Random();
+
+        foreach (var junior in _juniors)
         {
-            Random rnd = new Random();
+            junior.WishList = _teamLeads.Select(tl => tl.Name).OrderBy(x => random.Next()).ToList();
+        }
 
-            foreach (var junior in _juniors)
-            {
-                junior.WishList = _teamLeads.Select(tl => tl.Name).OrderBy(x => rnd.Next()).ToList();
-            }
-
-            foreach (var teamLead in _teamLeads)
-            {
-                teamLead.WishList = _juniors.Select(j => j.Name).OrderBy(x => rnd.Next()).ToList();
-            }
+        foreach (var teamLead in _teamLeads)
+        {
+            teamLead.WishList = _juniors.Select(j => j.Name).OrderBy(x => random.Next()).ToList();
         }
     }
 }

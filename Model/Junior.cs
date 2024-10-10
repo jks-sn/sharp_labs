@@ -1,10 +1,6 @@
-// Junior.cs
-using Hackathon.Model;
+// Model/Junior.cs
 
-namespace Hackathon.Model
+namespace Hackathon.Model;
+public class Junior : Participant
 {
-    public class Junior : Participant
-    {
-
-    }
 }

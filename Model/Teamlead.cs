@@ -1,10 +1,8 @@
-// Teamlead.cs
-using Hackathon.Model;
+// Model/Teamlead.cs
 
-namespace Hackathon.Model
+
+namespace Hackathon.Model;
+public class TeamLead : Participant
 {
-    public class TeamLead : Participant
-    {
 
-    }
 }

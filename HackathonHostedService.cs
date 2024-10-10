@@ -1,43 +1,38 @@
 // HackathonHostedService.cs
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Hackathon.Model;
+using Hackathon.Options;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
-namespace HackathonSimulation
+namespace Hackathon;
+public class HackathonHostedService(HRDirector hrDirector, HRManager hrManager, IOptions<HackathonOptions> hackathonOptions) : BackgroundService
 {
-    public class HackathonHostedService(DataLoader dataLoader, HRDirector hrDirector, HRManager hrManager) : BackgroundService
+    private readonly HRDirector _hrDirector = hrDirector;
+    private readonly HRManager _hrManager = hrManager;
+    private readonly int _hackathonCount = hackathonOptions.Value.HackathonCount;
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        private readonly DataLoader _dataLoader = dataLoader;
-        private readonly HRDirector _hrDirector = hrDirector;
-        private readonly HRManager _hrManager = hrManager;
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            return Task.Run(() => RunHackathons(), stoppingToken);
-        }
-
-        private void RunHackathons()
-        {
-            var juniors = _dataLoader.LoadJuniors("./data/Juniors20.csv");
-            var teamLeads = _dataLoader.LoadTeamLeads("./data/Teamleads20.csv");
-
-            double totalHarmonicity = 0;
-            int hackathonCount = 1000;
-
-            for (int i = 0; i < hackathonCount; i++)
-            {
-                var juniorsClone = juniors.Select(j => new Junior { Name = j.Name }).ToList();
-                var teamLeadsClone = teamLeads.Select(tl => new TeamLead { Name = tl.Name }).ToList();
-
-               var hackathon = new Hackathon.Model.Hackathon(juniorsClone, teamLeadsClone, _hrManager, _hrDirector);
-                double harmonicity = hackathon.RunHackathon();
-                totalHarmonicity += harmonicity;
-
-                Console.WriteLine($"Хакатон {i + 1}: Гармоничность = {harmonicity:F2}");
-            }
-
-            double averageHarmonicity = totalHarmonicity / hackathonCount;
-            Console.WriteLine($"\nСредняя гармоничность по {hackathonCount} хакатонам: {averageHarmonicity:F2}");
-        }
+        return Task.Run(RunHackathons, stoppingToken);
     }
+
+    private void RunHackathons()
+    {
+        double totalHarmonic = 0;
+
+        for (int i = 0; i < _hackathonCount; i++)
+        {
+            var hackathon = new Hackathon.Model.Hackathon(_hrManager, _hrDirector);
+            double harmonic = hackathon.Run();
+            totalHarmonic += harmonic;
+            Console.WriteLine($"Хакатон {i + 1}: Гармоничность = {harmonic:F2}");
+        }
+
+        double averageHarmonic = totalHarmonic / _hackathonCount;
+        Console.WriteLine($"\nСредняя гармоничность по {_hackathonCount} хакатонам: {averageHarmonic:F2}");
+    }
+    
 }

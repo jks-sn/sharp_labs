@@ -1,12 +1,21 @@
-// HRDirector.cs
+// Model/HRDirector.cs
 
 using Hackathon.Model;
-
+using Hackathon.Options;
 namespace Hackathon.Model
 {
-    public class HRDirector
+    public class HRDirector(DataLoader dataLoader)
     {
-        public double ComputeHarmonicity(List<Participant> participants)
+        private readonly DataLoader _dataLoader = dataLoader;
+        public List<Junior> LoadJuniors()
+        {
+            return _dataLoader.LoadJuniors();
+        }
+        public List<TeamLead> LoadTeamLeads()
+        {
+            return _dataLoader.LoadTeamLeads();
+        }
+        public double ComputeHarmonic(List<Participant> participants)
         {
             int n = participants.Count;
             double denominator = 0;
