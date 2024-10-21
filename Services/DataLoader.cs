@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Hackathon.Options;
+using Hackathon.Model;
 using Microsoft.Extensions.Options;
-
-namespace Hackathon.Model;
+namespace Hackathon.Services;
 public class DataLoader(IOptions<DataLoaderOptions> options)
 {
     private readonly DataLoaderOptions _options = options.Value;

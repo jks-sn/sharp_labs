@@ -968,3 +968,4 @@ $RECYCLE.BIN/
          *.swp
          /.vscode/
 /.vscode/
+*.zip

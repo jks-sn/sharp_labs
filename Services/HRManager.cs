@@ -2,9 +2,10 @@
 
 using Hackathon.Strategy;
 using Hackathon.Options;
+using Hackathon.Model;
 using Microsoft.Extensions.Options;
 
-namespace Hackathon.Model;
+namespace Hackathon.Services;
 public class HRManager(IOptions<HRManagerOptions> options, IAssignmentStrategyFactory strategyFactory)
 {
     private readonly IAssignmentStrategy _strategy = strategyFactory.GetStrategy(options.Value.AssignmentStrategy);
