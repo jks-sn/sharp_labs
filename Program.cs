@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Hackathon.HostedServices;
+using Hackathon.Interface;
 using Hackathon.Strategy;
 using Hackathon.Options;
 using Hackathon.Preferences;
@@ -26,11 +27,10 @@ class Program
                 services.Configure<HackathonOptions>(context.Configuration.GetSection("HackathonOptions"));
                 services.Configure<HRManagerOptions>(context.Configuration.GetSection("HRManagerOptions"));
                 
-                services.AddSingleton<DataLoader>();
-                services.AddSingleton<HRDirector>();
-                services.AddSingleton<HRManager>();
-                services.AddSingleton<HRDirector>();
-                services.AddSingleton<Services.Hackathon>();
+                services.AddSingleton<IDataLoader, DataLoader>();
+                services.AddSingleton<IHRDirector, HRDirector>();
+                services.AddSingleton<IHRManager, HRManager>();
+                services.AddSingleton<IHackathon, Services.Hackathon>();
                 services.AddTransient<IAssignmentStrategy, GaleShapleyStrategy>();
                 services.AddTransient<IAssignmentStrategy, RandomAssignmentStrategy>();
                 services.AddSingleton<IAssignmentStrategyFactory, StrategyFactory>();

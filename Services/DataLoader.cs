@@ -6,9 +6,11 @@ using System.IO;
 using System.Linq;
 using Hackathon.Options;
 using Hackathon.Model;
+using Hackathon.Interface;
 using Microsoft.Extensions.Options;
+
 namespace Hackathon.Services;
-public class DataLoader(IOptions<DataLoaderOptions> options)
+public class DataLoader(IOptions<DataLoaderOptions> options) : IDataLoader
 {
     private readonly DataLoaderOptions _options = options.Value;
     public List<Junior> LoadJuniors()

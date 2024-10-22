@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Hackathon.Interface;
 using Hackathon.Model;
 using Hackathon.Options;
 using Hackathon.Services;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace Hackathon.HostedServices;
 public class HackathonHostedService(
-    Services.Hackathon hackathon,
+    IHackathon hackathon,
     IOptions<HackathonOptions> hackathonOptions)
     : BackgroundService
 {

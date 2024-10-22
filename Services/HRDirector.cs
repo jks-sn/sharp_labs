@@ -2,25 +2,25 @@
 
 using Hackathon.Model;
 using Hackathon.Options;
+using Hackathon.Interface;
 using Hackathon.Utilities;
-namespace Hackathon.Services
+
+namespace Hackathon.Services;
+public class HRDirector : IHRDirector
 {
-    public class HRDirector
+    public double EvaluateHackathon(IEnumerable<Participant> participants)
     {
-        public double EvaluateHackathon(IEnumerable<Participant> participants)
-        {
-            var satisfactionIndices = participants.Select(p => p.SatisfactionIndex);
-            return MathUtils.ComputeHarmonicMean(satisfactionIndices);
-        }
+        var satisfactionIndices = participants.Select(p => p.SatisfactionIndex);
+        return MathUtils.ComputeHarmonicMean(satisfactionIndices);
+    }
 
-        public void AnalyzeResults(double harmonicity)
-        {
-            // Логика анализа результатов
-        }
+    public void AnalyzeResults(double harmonic)
+    {
+        // Логика анализа результатов
+    }
 
-        public void ProvideGuidance(HRManager hrManager)
-        {
-            // Логика предоставления рекомендаций HRManager-у
-        }
+    public void ProvideGuidance(IHRManager hrManager)
+    {
+        // Логика предоставления рекомендаций HRManager-у
     }
 }

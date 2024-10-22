@@ -1,23 +1,24 @@
 // Services/Hackathon.cs
 
+using Hackathon.Interface;
 using Hackathon.Model;
 using Hackathon.Preferences;
 
 
 namespace Hackathon.Services;
 
-public class Hackathon
+public class Hackathon : IHackathon
 {
-    private readonly HRManager _hrManager;
-    private readonly HRDirector _hrDirector;
+    private readonly IHRManager _hrManager;
+    private readonly IHRDirector _hrDirector;
     private readonly IPreferenceGenerator _preferenceGenerator;
     private readonly List<Junior> _juniors;
     private readonly List<TeamLead> _teamLeads;
     
     public Hackathon(
-        HRManager hrManager,
-        HRDirector hrDirector,
-        DataLoader dataLoader,
+        IHRManager hrManager,
+        IHRDirector hrDirector,
+        IDataLoader dataLoader,
         IPreferenceGenerator preferenceGenerator)
     {
         _hrManager = hrManager;
