@@ -1,4 +1,4 @@
-// Model/TeamLead.cs
+// Model/Teamlead.cs
 
 
 namespace Hackathon.Model;

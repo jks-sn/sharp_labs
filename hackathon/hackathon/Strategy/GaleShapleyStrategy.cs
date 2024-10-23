@@ -2,63 +2,62 @@
 
 using Hackathon.Model;
 
-namespace Hackathon.Strategy
+namespace Hackathon.Strategy;
+
+public class GaleShapleyStrategy : IAssignmentStrategy
 {
-    public class GaleShapleyStrategy : IAssignmentStrategy
+    public List<Team> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads)
     {
-        public List<Team> AssignPairs(List<Junior> juniors, List<TeamLead> teamLeads)
+        var freeJuniors = new Queue<Junior>(juniors);
+        var teamLeadEngagements = new Dictionary<string, string>(); // TeamLeadName -> JuniorName
+
+        // словари для быстрого доступа
+        var teamLeadDict = teamLeads.ToDictionary(tl => tl.Name, tl => tl);
+        var juniorDict = juniors.ToDictionary(j => j.Name, j => j);
+
+        // Индексы предложений для каждого джуна
+        var proposalIndex = juniors.ToDictionary(j => j.Name, j => 0);
+
+        while (freeJuniors.Count > 0)
         {
-            var freeJuniors = new Queue<Junior>(juniors);
-            var teamLeadEngagements = new Dictionary<string, string>(); // TeamLeadName -> JuniorName
+            var junior = freeJuniors.Dequeue();
+            var teamLeadName = junior.WishList[proposalIndex[junior.Name]];
+            proposalIndex[junior.Name]++;
 
-            // словари для быстрого доступа
-            var teamLeadDict = teamLeads.ToDictionary(tl => tl.Name, tl => tl);
-            var juniorDict = juniors.ToDictionary(j => j.Name, j => j);
-
-            // Индексы предложений для каждого джуна
-            var proposalIndex = juniors.ToDictionary(j => j.Name, j => 0);
-
-            while (freeJuniors.Count > 0)
+            if (!teamLeadEngagements.ContainsKey(teamLeadName))
             {
-                var junior = freeJuniors.Dequeue();
-                var teamLeadName = junior.WishList[proposalIndex[junior.Name]];
-                proposalIndex[junior.Name]++;
+                // Тимлид свободен
+                teamLeadEngagements[teamLeadName] = junior.Name;
+            }
+            else
+            {
+                var currentJuniorName = teamLeadEngagements[teamLeadName];
+                var teamLead = teamLeadDict[teamLeadName];
 
-                if (!teamLeadEngagements.ContainsKey(teamLeadName))
+                // Сравнение предпочтений тимлида
+                if (teamLead.WishList.IndexOf(junior.Name) < teamLead.WishList.IndexOf(currentJuniorName))
                 {
-                    // Тимлид свободен
+                    // Тимлид предпочитает нового джуна
+                    freeJuniors.Enqueue(juniorDict[currentJuniorName]);
                     teamLeadEngagements[teamLeadName] = junior.Name;
                 }
                 else
                 {
-                    var currentJuniorName = teamLeadEngagements[teamLeadName];
-                    var teamLead = teamLeadDict[teamLeadName];
-
-                    // Сравнение предпочтений тимлида
-                    if (teamLead.WishList.IndexOf(junior.Name) < teamLead.WishList.IndexOf(currentJuniorName))
-                    {
-                        // Тимлид предпочитает нового джуна
-                        freeJuniors.Enqueue(juniorDict[currentJuniorName]);
-                        teamLeadEngagements[teamLeadName] = junior.Name;
-                    }
-                    else
-                    {
-                        // Тимлид оставляет текущего джуна
-                        freeJuniors.Enqueue(junior);
-                    }
+                    // Тимлид оставляет текущего джуна
+                    freeJuniors.Enqueue(junior);
                 }
             }
-
-            // Формирование списка пар
-            var teams = new List<Team>();
-            foreach (var engagement in teamLeadEngagements)
-            {
-                var teamLead = teamLeadDict[engagement.Key];
-                var junior = juniorDict[engagement.Value];
-                teams.Add(new Team(junior, teamLead));
-            }
-
-            return teams;
         }
+
+        // Формирование списка пар
+        var teams = new List<Team>();
+        foreach (var engagement in teamLeadEngagements)
+        {
+            var teamLead = teamLeadDict[engagement.Key];
+            var junior = juniorDict[engagement.Value];
+            teams.Add(new Team(junior, teamLead));
+        }
+
+        return teams;
     }
 }

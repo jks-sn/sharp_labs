@@ -3,36 +3,39 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Hackathon.Interface;
 using Hackathon.Model;
 using Hackathon.Options;
+using Hackathon.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace Hackathon;
-public class HackathonHostedService(HRDirector hrDirector, HRManager hrManager, IOptions<HackathonOptions> hackathonOptions) : BackgroundService
+namespace Hackathon.HostedServices;
+public class HackathonHostedService(
+    IHackathon hackathon,
+    IOptions<HackathonOptions> hackathonOptions)
+    : BackgroundService
 {
-    private readonly HRDirector _hrDirector = hrDirector;
-    private readonly HRManager _hrManager = hrManager;
     private readonly int _hackathonCount = hackathonOptions.Value.HackathonCount;
+
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        return Task.Run(RunHackathons, stoppingToken);
+        return Task.Run(() => RunHackathons(stoppingToken), stoppingToken);
     }
 
-    private void RunHackathons()    
+    private void RunHackathons(CancellationToken stoppingToken)
     {
-        double totalHarmonic = 0;
+        decimal totalHarmonic = 0;
 
-        for (int i = 0; i < _hackathonCount; i++)
+        for (int i = 0; i < _hackathonCount; ++i)
         {
-            var hackathon = new Hackathon.Model.Hackathon(_hrManager, _hrDirector);
-            double harmonic = hackathon.Run();
+            decimal harmonic = hackathon.Run();
             totalHarmonic += harmonic;
+
             Console.WriteLine($"Хакатон {i + 1}: Гармоничность = {harmonic:F2}");
         }
 
-        double averageHarmonic = totalHarmonic / _hackathonCount;
+        decimal averageHarmonic = totalHarmonic / _hackathonCount;
         Console.WriteLine($"\nСредняя гармоничность по {_hackathonCount} хакатонам: {averageHarmonic:F2}");
     }
-    
 }

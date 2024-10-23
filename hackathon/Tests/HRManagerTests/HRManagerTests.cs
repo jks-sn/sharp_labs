@@ -1,147 +1,59 @@
-//Tests/HRManagerTests.cs
+// File: Tests/HRManagerTests/HRManagerTests.cs
 
+using System.Collections.Generic;
 using Hackathon.Model;
 using Hackathon.Options;
+using Hackathon.Services;
+using Hackathon.Services;
+using Hackathon.Interface;
 using Hackathon.Strategy;
+using Hackathon.Strategy;
+using Hackathon.Tests.Builder;
+using Hackathon.Tests.Fixtures;
 using Microsoft.Extensions.Options;
-using Moq;
 using Xunit;
 
 namespace Hackathon.Tests.HRManagerTests;
-
-public class HRManagerTests
+public class HRManagerTests : IClassFixture<TestDataFixture>
 {
-    [Fact]
-    public void AssignTeams_ShouldReturnCorrectNumberOfTeams()
+    private readonly TestDataFixture _fixture;
+
+    public HRManagerTests(TestDataFixture fixture)
     {
-        // Arrange
-        var mockStrategy = new Mock<IAssignmentStrategy>();
-        var mockFactory = new Mock<IAssignmentStrategyFactory>();
-        mockFactory.Setup(f => f.GetStrategy(It.IsAny<string>())).Returns(mockStrategy.Object);
-
-        var options = new HRManagerOptions { AssignmentStrategy = "MockStrategy" };
-        var mockOptions = new Mock<IOptions<HRManagerOptions>>();
-        mockOptions.Setup(o => o.Value).Returns(options);
-
-        var hrManager = new HRManager(mockOptions.Object, mockFactory.Object);
-
-        var juniors = new List<Junior>
-        {
-            new Junior { Name = "Junior1" },
-            new Junior { Name = "Junior2" }
-        };
-
-        var teamLeads = new List<TeamLead>
-        {
-            new TeamLead { Name = "TeamLead1" },
-            new TeamLead { Name = "TeamLead2" }
-        };
-
-        var expectedTeams = new List<Team>
-        {
-            new Team(juniors[0], teamLeads[0]),
-            new Team(juniors[1], teamLeads[1])
-        };
-
-        mockStrategy.Setup(s => s.AssignPairs(juniors, teamLeads)).Returns(expectedTeams);
-
-        // Act
-        var teams = hrManager.AssignTeams(juniors, teamLeads);
-
-        // Assert
-        Assert.Equal(expectedTeams.Count, teams.Count);
+        _fixture = fixture;
     }
 
     [Fact]
-    public void AssignTeams_ShouldReturnPredefinedDistribution()
+    public void AssignTeams_ShouldAssignTeamsCorrectlyUsingGaleShapleyStrategy()
     {
         // Arrange
-        var mockStrategy = new Mock<IAssignmentStrategy>();
-        var mockFactory = new Mock<IAssignmentStrategyFactory>();
-        mockFactory.Setup(f => f.GetStrategy("MockStrategy")).Returns(mockStrategy.Object);
-
-        var options = new HRManagerOptions { AssignmentStrategy = "MockStrategy" };
-        var mockOptions = new Mock<IOptions<HRManagerOptions>>();
-        mockOptions.Setup(o => o.Value).Returns(options);
-
-        var hrManager = new HRManager(mockOptions.Object, mockFactory.Object);
-
-        var juniors = new List<Junior>
+        var strategies = new List<IAssignmentStrategy>
         {
-            new Junior { Name = "Junior1" },
-            new Junior { Name = "Junior2" }
+            new GaleShapleyStrategy(),
+            new RandomAssignmentStrategy()
         };
+        var strategyFactory = new StrategyFactory(strategies);
+        
+        var hrManagerOptions = Microsoft.Extensions.Options.Options.Create(new HRManagerOptions { AssignmentStrategy = "GaleShapleyStrategy" });
+        
+        var hrManager = new HRManager(hrManagerOptions, strategyFactory);
+        
+        _fixture.Juniors[0].WishList = new List<string> { "TeamLead1", "TeamLead2", "TeamLead3" };
+        _fixture.Juniors[1].WishList = new List<string> { "TeamLead2", "TeamLead1", "TeamLead3" };
+        _fixture.Juniors[2].WishList = new List<string> { "TeamLead3", "TeamLead1" ,"TeamLead2" };
 
-        var teamLeads = new List<TeamLead>
-        {
-            new TeamLead { Name = "TeamLead1" },
-            new TeamLead { Name = "TeamLead2" }
-        };
-
-        var predefinedTeams = new List<Team>
-        {
-            new Team(juniors[0], teamLeads[1]),
-            new Team(juniors[1], teamLeads[0])
-        };
-
-        mockStrategy.Setup(s => s.AssignPairs(juniors, teamLeads)).Returns(predefinedTeams);
+        _fixture.TeamLeads[0].WishList = new List<string> { "Junior1", "Junior2", "Junior3" };
+        _fixture.TeamLeads[1].WishList = new List<string> { "Junior2", "Junior1", "Junior3" };
+        _fixture.TeamLeads[2].WishList = new List<string> { "Junior3", "Junior1", "Junior2" };
 
         // Act
-        var teams = hrManager.AssignTeams(juniors, teamLeads);
+        var teams = hrManager.AssignTeams(_fixture.Juniors, _fixture.TeamLeads);
 
         // Assert
-        Assert.Collection(teams,
-            team =>
-            {
-                Assert.Equal("Junior1", team.Junior.Name);
-                Assert.Equal("TeamLead2", team.TeamLead.Name);
-            },
-            team =>
-            {
-                Assert.Equal("Junior2", team.Junior.Name);
-                Assert.Equal("TeamLead1", team.TeamLead.Name);
-            });
-    }
+        Assert.Equal(3, teams.Count);
+        Assert.Contains(teams, t => t.Junior.Name == "Junior1" && t.TeamLead.Name == "TeamLead1");
+        Assert.Contains(teams, t => t.Junior.Name == "Junior2" && t.TeamLead.Name == "TeamLead2");
+        Assert.Contains(teams, t => t.Junior.Name == "Junior3" && t.TeamLead.Name == "TeamLead3");
 
-    [Fact]
-    public void AssignTeams_Strategy_ShouldBeCalledExactlyOnce()
-    {
-        // Arrange
-        var mockStrategy = new Mock<IAssignmentStrategy>();
-        var mockFactory = new Mock<IAssignmentStrategyFactory>();
-        mockFactory.Setup(f => f.GetStrategy(It.IsAny<string>())).Returns(mockStrategy.Object);
-
-        var options = new HRManagerOptions { AssignmentStrategy = "MockStrategy" };
-        var mockOptions = new Mock<IOptions<HRManagerOptions>>();
-        mockOptions.Setup(o => o.Value).Returns(options);
-
-        var hrManager = new HRManager(mockOptions.Object, mockFactory.Object);
-
-        var juniors = new List<Junior>
-        {
-            new Junior { Name = "Junior1" },
-            new Junior { Name = "Junior2" }
-        };
-
-        var teamLeads = new List<TeamLead>
-        {
-            new TeamLead { Name = "TeamLead1" },
-            new TeamLead { Name = "TeamLead2" }
-        };
-
-        var teams = new List<Team>
-        {
-            new Team(juniors[0], teamLeads[0]),
-            new Team(juniors[1], teamLeads[1])
-        };
-
-        mockStrategy.Setup(s => s.AssignPairs(juniors, teamLeads)).Returns(teams);
-
-        // Act
-        hrManager.AssignTeams(juniors, teamLeads);
-        hrManager.AssignTeams(juniors, teamLeads);
-
-        // Assert
-        mockStrategy.Verify(s => s.AssignPairs(juniors, teamLeads), Times.Exactly(2));
     }
 }
