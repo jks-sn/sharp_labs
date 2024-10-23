@@ -35,14 +35,6 @@ public class HRManagerTests : IClassFixture<TestDataFixture>
         var hrManagerOptions = Microsoft.Extensions.Options.Options.Create(new HRManagerOptions { AssignmentStrategy = "GaleShapleyStrategy" });
         
         var hrManager = new HRManager(hrManagerOptions, strategyFactory);
-        
-        _fixture.Juniors[0].WishList = new List<string> { "TeamLead1", "TeamLead2", "TeamLead3" };
-        _fixture.Juniors[1].WishList = new List<string> { "TeamLead2", "TeamLead1", "TeamLead3" };
-        _fixture.Juniors[2].WishList = new List<string> { "TeamLead3", "TeamLead1" ,"TeamLead2" };
-
-        _fixture.TeamLeads[0].WishList = new List<string> { "Junior1", "Junior2", "Junior3" };
-        _fixture.TeamLeads[1].WishList = new List<string> { "Junior2", "Junior1", "Junior3" };
-        _fixture.TeamLeads[2].WishList = new List<string> { "Junior3", "Junior1", "Junior2" };
 
         // Act
         var teams = hrManager.AssignTeams(_fixture.Juniors, _fixture.TeamLeads);
