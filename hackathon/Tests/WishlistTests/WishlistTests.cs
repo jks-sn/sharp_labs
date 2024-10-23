@@ -65,15 +65,7 @@ public class WishlistTests : IClassFixture<TestDataFixture>
         var hrManager = new HRManager(mockOptions.Object, mockStrategyFactory.Object);
 
         var hackathon = new Services.Hackathon(hrManager, hrDirector, mockDataLoader.Object, mockPreferenceGenerator.Object);
-        foreach (var junior in _fixture.Juniors)
-        {
-            junior.SatisfactionIndex = 3; 
-        }
-
-        foreach (var teamLead in _fixture.TeamLeads)
-        {
-            teamLead.SatisfactionIndex = 4;
-        }
+        
         // Act
         hackathon.Run();
 
