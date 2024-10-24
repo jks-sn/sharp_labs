@@ -5,7 +5,7 @@ namespace Hackathon.Interface;
 
 public interface IHRDirector
 {
-    public decimal EvaluateHackathon(IEnumerable<Participant> participants);
-    public void AnalyzeResults(decimal harmonic);
+    public double EvaluateHackathon(IEnumerable<Participant> participants);
+    public void AnalyzeResults(double harmonic);
     public void ProvideGuidance(IHRManager hrManager);
 }

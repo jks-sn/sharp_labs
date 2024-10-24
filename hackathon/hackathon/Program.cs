@@ -1,5 +1,6 @@
 // Program.cs
 
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,8 @@ class Program
                 services.Configure<DataLoaderOptions>(context.Configuration.GetSection("DataLoaderOptions"));
                 services.Configure<HackathonOptions>(context.Configuration.GetSection("HackathonOptions"));
                 services.Configure<HRManagerOptions>(context.Configuration.GetSection("HRManagerOptions"));
+                
+                services.AddSingleton<IFileSystem, FileSystem>();
                 
                 services.AddSingleton<IDataLoader, DataLoader>();
                 services.AddSingleton<IHRDirector, HRDirector>();

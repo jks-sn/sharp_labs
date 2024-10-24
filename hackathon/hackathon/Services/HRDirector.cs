@@ -8,19 +8,19 @@ using Hackathon.Utilities;
 namespace Hackathon.Services;
 public class HRDirector : IHRDirector
 {
-    public decimal EvaluateHackathon(IEnumerable<Participant> participants)
+    public double EvaluateHackathon(IEnumerable<Participant> participants)
     {
         var satisfactionIndices = participants.Select(p => p.SatisfactionIndex);
         return MathUtils.ComputeHarmonicMean(satisfactionIndices);
     }
 
-    public void AnalyzeResults(decimal harmonic)
+    public void AnalyzeResults(double harmonic)
     {
-        // Логика анализа результатов
+        
     }
 
     public void ProvideGuidance(IHRManager hrManager)
     {
-        // Логика предоставления рекомендаций HRManager-у
+        
     }
 }

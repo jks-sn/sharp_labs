@@ -25,17 +25,17 @@ public class HackathonHostedService(
 
     private void RunHackathons(CancellationToken stoppingToken)
     {
-        decimal totalHarmonic = 0;
+        double totalHarmonic = 0;
 
         for (int i = 0; i < _hackathonCount; ++i)
         {
-            decimal harmonic = hackathon.Run();
+            double harmonic = hackathon.Run();
             totalHarmonic += harmonic;
 
             Console.WriteLine($"Хакатон {i + 1}: Гармоничность = {harmonic:F2}");
         }
 
-        decimal averageHarmonic = totalHarmonic / _hackathonCount;
+        double averageHarmonic = totalHarmonic / _hackathonCount;
         Console.WriteLine($"\nСредняя гармоничность по {_hackathonCount} хакатонам: {averageHarmonic:F2}");
     }
 }

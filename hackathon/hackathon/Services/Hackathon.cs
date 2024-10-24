@@ -28,7 +28,7 @@ public class Hackathon : IHackathon
         _teamLeads = dataLoader.LoadTeamLeads();
     }
     
-    public decimal Run()
+    public double Run()
     {
         _preferenceGenerator.GeneratePreferences(_juniors,_teamLeads);
 
@@ -42,7 +42,7 @@ public class Hackathon : IHackathon
 
         List<Participant> allParticipants = _juniors.Cast<Participant>().Concat(_teamLeads).ToList();
         
-        decimal harmonic = _hrDirector.EvaluateHackathon(allParticipants);
+        double harmonic = _hrDirector.EvaluateHackathon(allParticipants);
         
         _hrDirector.AnalyzeResults(harmonic);
         _hrDirector.ProvideGuidance(_hrManager);

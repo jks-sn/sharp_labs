@@ -4,5 +4,5 @@ namespace Hackathon.Interface;
 
 public interface IHackathon
 {
-    decimal Run();
+    double Run();
 }

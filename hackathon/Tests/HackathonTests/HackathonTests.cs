@@ -50,7 +50,7 @@ public class HackathonTests : IClassFixture<TestDataFixture>
         var hackathon = new Services.Hackathon(hrManager, hrDirector, dataLoader, preferenceGenerator);
 
         // Act
-        decimal harmonic = hackathon.Run();
+        double harmonic = hackathon.Run();
 
         // Assert
         Assert.True(harmonic > 0, "Гармоничность должна быть больше нуля.");

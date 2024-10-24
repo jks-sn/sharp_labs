@@ -42,11 +42,11 @@ public class HRDirectorTests : IClassFixture<TestDataFixture>
         allParticipants.AddRange(_fixture.TeamLeads);
 
         // Act
-        decimal harmonicMean = hrDirector.EvaluateHackathon(allParticipants);
+        double harmonicMean = hrDirector.EvaluateHackathon(allParticipants);
 
         // Assert
-        // Гармоническое среднее для [3,3,3,4,4] = 5 / (1/3 + 1/3 + 1/3 + 1/4 + 1/4) = 5 / (1 + 0.5) = 5 / 1.5 ≈ 3.333
-        Assert.True(Math.Abs(harmonicMean - 3.33m) < 0.1m, $"Ожидалось 3.33, получено {harmonicMean}");
+        // Гармоническое среднее для [3,3,3,4,4,4] = 6 / (1/3 + 1/3 + 1/3 + 1/4 + 1/4 + 1/4) = 5 / (1 + 0.75) = 5 / 1.75 ≈ 3.42
+        Assert.True(Math.Abs(harmonicMean - 3.42) < 0.01, $"Ожидалось 3.33, получено {harmonicMean}");
     }
     [Fact]
     public void EvaluateHackathon_ShouldHandleDifferentSatisfactionIndices()
@@ -62,13 +62,13 @@ public class HRDirectorTests : IClassFixture<TestDataFixture>
         var hrDirector = new HRDirector();
 
         // Гармоническое среднее: 3 / (1/5 + 1/10 + 1/15) = 3 / (0.2 + 0.1 + 0.0667) ≈ 3 / 0.3667 ≈ 8.1818
-        decimal expectedHarmonicMean = 8.1818m;
+        double expectedHarmonicMean = 8.1818;
 
         // Act
-        decimal harmonicMean = hrDirector.EvaluateHackathon(participants);
+        double harmonicMean = hrDirector.EvaluateHackathon(participants);
 
         // Assert
-        Assert.True(Math.Abs(harmonicMean - expectedHarmonicMean) < 0.01m, $"Ожидалось {expectedHarmonicMean}, получено {harmonicMean}");
+        Assert.True(Math.Abs(harmonicMean - expectedHarmonicMean) < 0.01, $"Ожидалось {expectedHarmonicMean}, получено {harmonicMean}");
     }
 
     [Fact]
@@ -114,10 +114,10 @@ public class HRDirectorTests : IClassFixture<TestDataFixture>
         var hrDirector = new HRDirector();
 
         // Гармоническое среднее: 3 / (1 + 1 + 1) = 1
-        decimal expectedHarmonicMean = 1m;
+        double expectedHarmonicMean = 1;
 
         // Act
-        decimal harmonicMean = hrDirector.EvaluateHackathon(participants);
+        double harmonicMean = hrDirector.EvaluateHackathon(participants);
 
         // Assert
         Assert.Equal(expectedHarmonicMean, harmonicMean);
