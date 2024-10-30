@@ -967,5 +967,4 @@ $RECYCLE.BIN/
          # Vim temporary swap files
          *.swp
          /.vscode/
-/.vscode/
-*.zip
+         *.zip

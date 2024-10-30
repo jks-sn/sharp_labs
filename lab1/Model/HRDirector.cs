@@ -1,11 +1,12 @@
 // HRDirector.cs
+
 using Hackathon.Model;
 
 namespace Hackathon.Model
 {
     public class HRDirector
     {
-        public static double ComputeHarmonicity(List<Participant> participants)
+        public double ComputeHarmonicity(List<Participant> participants)
         {
             int n = participants.Count;
             double denominator = 0;
