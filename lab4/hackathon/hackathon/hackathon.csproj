@@ -5,6 +5,7 @@
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
         <RootNamespace>Hackathon</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

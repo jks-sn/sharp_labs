@@ -13,7 +13,7 @@ public abstract class Participant
     public int SatisfactionIndex { get; set; }
     
     public int HackathonEventId { get; set; }
-    public HackathonEvent HackathonEvent { get; set; }
+    public HackathonEvent HackathonEvent { get; set; } = null!;
 
     public void CalculateSatisfactionIndex()
     {

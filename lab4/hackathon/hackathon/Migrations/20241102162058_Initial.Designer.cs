@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Hackathon.Migrations
 {
     [DbContext(typeof(HackathonDbContext))]
-    [Migration("20241102142336_MakeAssignedPartnerNullable4")]
-    partial class MakeAssignedPartnerNullable4
+    [Migration("20241102162058_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -99,7 +99,7 @@ namespace Hackathon.Migrations
 
                     b.HasIndex("ParticipantId");
 
-                    b.ToTable("Wishlists");
+                    b.ToTable("Preference");
                 });
 
             modelBuilder.Entity("Hackathon.Model.Team", b =>

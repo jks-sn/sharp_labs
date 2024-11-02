@@ -12,7 +12,6 @@ public class HackathonDbContext : DbContext
     public DbSet<Junior> Juniors { get; set; }
     public DbSet<TeamLead> TeamLeads { get; set; }
     public DbSet<Team> Teams { get; set; }
-    public DbSet<Preference> Wishlists { get; set; }
 
     public HackathonDbContext(DbContextOptions<HackathonDbContext> options)
         : base(options)
@@ -31,10 +30,6 @@ public class HackathonDbContext : DbContext
             .WithOne(p => p.Participant)
             .HasForeignKey(p => p.ParticipantId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        modelBuilder.Entity<Participant>()
-            .Property(p => p.AssignedPartner)
-            .IsRequired(false);
         
         modelBuilder.Entity<Team>()
             .HasOne(t => t.Junior)
@@ -59,6 +54,10 @@ public class HackathonDbContext : DbContext
             .WithOne(t => t.HackathonEvent)
             .HasForeignKey(t => t.HackathonEventId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<Participant>()
+            .Property(p => p.AssignedPartner)
+            .IsRequired(false);
         
     }
 }

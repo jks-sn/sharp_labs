@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Hackathon.Migrations
 {
     /// <inheritdoc />
-    public partial class MakeAssignedPartnerNullable : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,27 @@ namespace Hackathon.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Preference",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ParticipantId = table.Column<int>(type: "integer", nullable: false),
+                    PreferredName = table.Column<string>(type: "text", nullable: false),
+                    Rank = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Preference", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Preference_Participants_ParticipantId",
+                        column: x => x.ParticipantId,
+                        principalTable: "Participants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Teams",
                 columns: table => new
                 {
@@ -80,31 +101,15 @@ namespace Hackathon.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Wishlists",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ParticipantId = table.Column<int>(type: "integer", nullable: false),
-                    PreferredName = table.Column<string>(type: "text", nullable: false),
-                    Rank = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Wishlists", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Wishlists_Participants_ParticipantId",
-                        column: x => x.ParticipantId,
-                        principalTable: "Participants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Participants_HackathonEventId",
                 table: "Participants",
                 column: "HackathonEventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Preference_ParticipantId",
+                table: "Preference",
+                column: "ParticipantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Teams_HackathonEventId",
@@ -120,21 +125,16 @@ namespace Hackathon.Migrations
                 name: "IX_Teams_TeamLeadId",
                 table: "Teams",
                 column: "TeamLeadId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Wishlists_ParticipantId",
-                table: "Wishlists",
-                column: "ParticipantId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Teams");
+                name: "Preference");
 
             migrationBuilder.DropTable(
-                name: "Wishlists");
+                name: "Teams");
 
             migrationBuilder.DropTable(
                 name: "Participants");

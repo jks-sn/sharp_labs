@@ -96,7 +96,7 @@ namespace Hackathon.Migrations
 
                     b.HasIndex("ParticipantId");
 
-                    b.ToTable("Wishlists");
+                    b.ToTable("Preference");
                 });
 
             modelBuilder.Entity("Hackathon.Model.Team", b =>

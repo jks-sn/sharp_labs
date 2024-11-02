@@ -9,23 +9,11 @@ public static class MathUtils
     public static double ComputeHarmonicMean(IEnumerable<int> values)
     {
         if (values == null || !values.Any())
-            throw new ArgumentException("Коллекция значений не может быть пустой или null.", nameof(values));
+            throw new ArgumentException("Values collection is empty.", nameof(values));
 
-        int n = values.Count();
-        Fraction sum = Fraction.Zero;
+        if (values.Any(v => v == 0))
+            throw new ArgumentException("Values cannot contain zero for harmonic mean calculation.", nameof(values));
 
-        foreach (var v in values)
-        {
-            if (v == 0)
-            {
-                throw new ArgumentException("Значения не могут быть равны нулю для вычисления гармонического среднего.",
-                    nameof(values));
-            }
-
-            sum += Fraction.One / v;
-        }
-
-        Fraction harmonicMean = n / sum;
-        return (double)harmonicMean;
+        return values.Count() / values.Sum(v => 1.0 / v);
     }
 }
