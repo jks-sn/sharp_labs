@@ -1,4 +1,4 @@
-//Builder/JuniorBuilder.cs
+//Tests/Builder/JuniorBuilder.cs
 
 using Hackathon.Model;
 

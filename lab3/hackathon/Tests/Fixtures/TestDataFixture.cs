@@ -1,4 +1,4 @@
-// File: Tests/Fixtures/TestDataFixtures.cs
+// Tests/Fixtures/TestDataFixtures.cs
 
 using Hackathon.Model;
 using Hackathon.Tests.Builder;

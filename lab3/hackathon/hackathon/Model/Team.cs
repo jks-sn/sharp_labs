@@ -1,4 +1,5 @@
 // Model/Team.cs
+
 using Hackathon.Model;
 
 namespace Hackathon.Model
