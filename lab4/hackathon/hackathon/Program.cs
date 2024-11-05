@@ -13,6 +13,7 @@ using Hackathon.Preferences;
 using Hackathon.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Hackathon;
@@ -21,6 +22,13 @@ class Program
     public static async Task Main(string[] args)
     {
         var host = Host.CreateDefaultBuilder(args)
+            .ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.SetMinimumLevel(LogLevel.Warning);
+                logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Error);
+            })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
