@@ -968,4 +968,4 @@ $RECYCLE.BIN/
          *.swp
          /.vscode/
          *.zip
-	 **/Migrations/
+	 **/Migrations/**
