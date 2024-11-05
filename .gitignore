@@ -968,4 +968,4 @@ $RECYCLE.BIN/
          *.swp
          /.vscode/
          *.zip
-	 **/Migrations/**
+	 lab4/hackathon/hackathon/Migrations/

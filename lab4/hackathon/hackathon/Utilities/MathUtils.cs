@@ -14,6 +14,7 @@ public static class MathUtils
         if (values.Any(v => v == 0))
             throw new ArgumentException("Values cannot contain zero for harmonic mean calculation.", nameof(values));
 
-        return values.Count() / values.Sum(v => 1.0 / v);
+        double sum = values.Sum(v => 1.0 / v);
+        return values.Count() / sum;
     }
 }

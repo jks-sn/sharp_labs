@@ -1,4 +1,4 @@
-// Strategy/AssignmentStrategyFactory.cs
+// Strategy/StrategyFactory.cs
 
 using System;
 using System.Collections.Generic;
