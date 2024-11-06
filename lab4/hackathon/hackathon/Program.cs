@@ -27,6 +27,8 @@ class Program
                 logging.ClearProviders();
                 logging.AddConsole();
                 logging.SetMinimumLevel(LogLevel.Warning);
+                logging.AddFilter("Microsoft", LogLevel.Warning);
+                logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
                 logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Error);
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
@@ -57,18 +59,14 @@ class Program
                 services.AddDbContext<HackathonDbContext>((serviceProvider, optionsBuilder) =>
                 {
                     var connectionOptions = serviceProvider.GetRequiredService<IOptions<ConnectionOptions>>().Value;
-                    optionsBuilder.UseNpgsql(connectionOptions.DefaultConnection);
+                    optionsBuilder.UseNpgsql(connectionOptions.DefaultConnection)
+                        .EnableDetailedErrors(false)
+                        .EnableSensitiveDataLogging(false);
                 });
                 
                 services.AddHostedService<HackathonHostedService>();
             })
             .Build();
-        
-        using (var scope = host.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<HackathonDbContext>();
-            db.Database.EnsureCreated();
-        }
         
         await host.RunAsync();
     }

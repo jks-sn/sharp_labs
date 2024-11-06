@@ -59,5 +59,13 @@ public class HackathonDbContext : DbContext
             .Property(p => p.AssignedPartner)
             .IsRequired(false);
         
+        modelBuilder.Entity<Participant>()
+            .HasKey(p => p.Id);
+
+        modelBuilder.Entity<Participant>()
+            .Property(p => p.Id)
+            .ValueGeneratedOnAdd();
+
+        
     }
 }
