@@ -1,4 +1,4 @@
-//Options/HRManagerOptions
+//Options/HRManagerOptions.cs
 
 namespace Hackathon.Options;
 

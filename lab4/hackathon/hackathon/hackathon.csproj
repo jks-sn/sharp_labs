@@ -37,11 +37,11 @@
         <None Update="appsettings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="Data\Juniors20.csv">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <None Update="Resources\Juniors20.csv">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="Data\Teamleads20.csv">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <None Update="Resources\Teamleads20.csv">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

@@ -14,8 +14,7 @@ public class Hackathon : IHackathon
     private readonly IHRManager _hrManager;
     private readonly IHRDirector _hrDirector;
     private readonly IPreferenceGenerator _preferenceGenerator;
-    private readonly List<Junior> _juniors;
-    private readonly List<TeamLead> _teamLeads;
+    private readonly IDataLoader _dataLoader;
     private readonly HackathonDbContext _dbContext;
     
     public Hackathon(
@@ -28,25 +27,26 @@ public class Hackathon : IHackathon
         _hrManager = hrManager;
         _hrDirector = hrDirector;
         _preferenceGenerator = preferenceGenerator;
+        _dataLoader = dataLoader;
         _dbContext = dbContext;
-        
-        _juniors = dataLoader.LoadJuniors();
-        _teamLeads = dataLoader.LoadTeamLeads();
     }
     
     public double Run()
     {
+        var juniors = _dataLoader.LoadJuniors();
+        var teamLeads = _dataLoader.LoadTeamLeads();
+        
         var hackathonEvent = new HackathonEvent();
         
-        _preferenceGenerator.GeneratePreferences(_juniors,_teamLeads);
+        _preferenceGenerator.GeneratePreferences(juniors,teamLeads);
 
-        foreach (var junior in _juniors)
+        foreach (var junior in juniors)
         {
             junior.HackathonEvent = hackathonEvent;
             _dbContext.Juniors.Add(junior);
         }
 
-        foreach (var teamLead in _teamLeads)
+        foreach (var teamLead in teamLeads)
         {
             teamLead.HackathonEvent = hackathonEvent;
             _dbContext.TeamLeads.Add(teamLead);
@@ -55,7 +55,7 @@ public class Hackathon : IHackathon
         _dbContext.Hackathons.Add(hackathonEvent);
         _dbContext.SaveChanges();
         
-        var teams = _hrManager.AssignTeams(_juniors, _teamLeads);
+        var teams = _hrManager.AssignTeams(juniors, teamLeads);
         
         foreach (var team in teams)
         {
@@ -69,7 +69,7 @@ public class Hackathon : IHackathon
             _dbContext.Entry(team.TeamLead).State = EntityState.Modified;
         }
 
-        var allParticipants = _juniors.Cast<Participant>().Concat(_teamLeads).ToList();
+        var allParticipants = juniors.Cast<Participant>().Concat(teamLeads).ToList();
         
         var harmonic = _hrDirector.EvaluateHackathon(allParticipants);
         

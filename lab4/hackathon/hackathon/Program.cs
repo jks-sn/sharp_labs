@@ -29,7 +29,6 @@ class Program
                 logging.SetMinimumLevel(LogLevel.Warning);
                 logging.AddFilter("Microsoft", LogLevel.Warning);
                 logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
-                logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Error);
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {

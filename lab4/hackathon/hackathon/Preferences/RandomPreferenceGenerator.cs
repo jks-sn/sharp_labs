@@ -1,4 +1,4 @@
-// Preferences/RandomPreferenceGenerator.cs
+// Preferences/RandomPreferenceGenerator
 
 using Hackathon.Model;
 
