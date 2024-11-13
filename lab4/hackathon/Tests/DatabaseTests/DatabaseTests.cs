@@ -1,55 +1,74 @@
 // Tests/DatabaseTests/DatabaseTests.cs
 
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
 using Hackathon.Data;
 using Hackathon.Model;
+using Microsoft.EntityFrameworkCore;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace Hackathon.Tests.DatabaseTests;
 
-public class DatabaseTests
+public class DatabaseTests : IAsyncLifetime
 {
-    private HackathonDbContext GetInMemoryDbContext()
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithDatabase("testdb")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+    private HackathonDbContext _dbContext;
+
+    public async Task InitializeAsync()
     {
+        await _postgresContainer.StartAsync();
+
+        var connectionString = _postgresContainer.GetConnectionString();
+
         var options = new DbContextOptionsBuilder<HackathonDbContext>()
-            .UseSqlite("Data Source=:memory:")
+            .UseNpgsql(connectionString)
             .Options;
 
-        var context = new HackathonDbContext(options);
-        context.Database.OpenConnection();
-        context.Database.EnsureCreated();
+        _dbContext = new HackathonDbContext(options);
 
-        return context;
+        await _dbContext.Database.MigrateAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _postgresContainer.DisposeAsync();
     }
 
     [Fact]
-    public void CanSaveAndRetrieveHackathonEvent()
+    public async Task CanSaveAndRetrieveHackathonEvent()
     {
-        using (var context = GetInMemoryDbContext())
-        {
-            var hackathonEvent = new HackathonEvent { Harmonic = 3.5 };
-            context.Hackathons.Add(hackathonEvent);
-            context.SaveChanges();
+        // Arrange
+        var hackathonEvent = new HackathonEvent { Harmonic = 3.5 };
+        _dbContext.Hackathons.Add(hackathonEvent);
+        await _dbContext.SaveChangesAsync();
 
-            var retrievedEvent = context.Hackathons.FirstOrDefault(h => h.Id == hackathonEvent.Id);
-            Assert.NotNull(retrievedEvent);
-            Assert.Equal(3.5, retrievedEvent.Harmonic);
-        }
+        // Act
+        var retrievedEvent = await _dbContext.Hackathons.FirstOrDefaultAsync(h => h.Id == hackathonEvent.Id);
+
+        // Assert
+        Assert.NotNull(retrievedEvent);
+        Assert.Equal(3.5, retrievedEvent.Harmonic);
     }
 
     [Fact]
-    public void CanCalculateAverageHarmonic()
+    public async Task CanCalculateAverageHarmonic()
     {
-        using (var context = GetInMemoryDbContext())
-        {
-            context.Hackathons.AddRange(
-                new HackathonEvent { Harmonic = 3.0 },
-                new HackathonEvent { Harmonic = 4.0 }
-            );
-            context.SaveChanges();
+        // Arrange
+        _dbContext.Hackathons.AddRange(
+            new HackathonEvent { Harmonic = 3.0 },
+            new HackathonEvent { Harmonic = 4.0 }
+        );
+        await _dbContext.SaveChangesAsync();
 
-            var averageHarmonic = context.Hackathons.Average(h => h.Harmonic);
-            Assert.Equal(3.5, averageHarmonic);
-        }
+        // Act
+        var averageHarmonic = await _dbContext.Hackathons.AverageAsync(h => h.Harmonic);
+
+        // Assert
+        Assert.Equal(3.5, averageHarmonic);
     }
 }

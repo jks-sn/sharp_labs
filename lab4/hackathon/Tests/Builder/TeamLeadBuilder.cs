@@ -3,36 +3,36 @@
 using Hackathon.Model;
 
 namespace Hackathon.Tests.Builder;
-
 public class TeamLeadBuilder
 {
     private string _name = "TeamLead";
-    private List<string> _wishList = new List<string>();
+    private List<Preference> _preferences = new List<Preference>();
     private int _satisfactionIndex = 0;
-    
+
     public TeamLeadBuilder WithName(string name)
     {
         _name = name;
         return this;
     }
 
-    public TeamLeadBuilder WithWishList(List<string> wishList)
+    public TeamLeadBuilder WithPreferences(List<Preference> preferences)
     {
-        _wishList = wishList;
+        _preferences = preferences;
         return this;
     }
-    public TeamLeadBuilder WithSatisfactionIndex(int index) 
+
+    public TeamLeadBuilder WithSatisfactionIndex(int index)
     {
         _satisfactionIndex = index;
         return this;
     }
-    
+
     public TeamLead Build()
     {
         return new TeamLead
         {
             Name = _name,
-            WishList = _wishList,
+            Preferences = _preferences,
             SatisfactionIndex = _satisfactionIndex
         };
     }

@@ -2,38 +2,67 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Hackathon.Data;
+using Hackathon.Interface;
 using Hackathon.Model;
 using Hackathon.Options;
 using Hackathon.Preferences;
 using Hackathon.Services;
-using Hackathon.Interface;
 using Hackathon.Strategy;
-using Hackathon.Tests.Builder;
 using Hackathon.Tests.Fixtures;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace Hackathon.Tests.HackathonTests;
-
-public class HackathonTests : IClassFixture<TestDataFixture>
+public class HackathonTests : IClassFixture<TestDataFixture>, IAsyncLifetime
 {
     private readonly TestDataFixture _fixture;
+    private readonly PostgreSqlContainer _postgresContainer;
+    private HackathonDbContext _dbContext;
 
     public HackathonTests(TestDataFixture fixture)
     {
         _fixture = fixture;
+
+        _postgresContainer = new PostgreSqlBuilder()
+            .WithDatabase("testdb")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .Build();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _postgresContainer.StartAsync();
+
+        var connectionString = _postgresContainer.GetConnectionString();
+
+        var options = new DbContextOptionsBuilder<HackathonDbContext>()
+            .UseNpgsql(connectionString)
+            .Options;
+
+        _dbContext = new HackathonDbContext(options);
+
+        await _dbContext.Database.MigrateAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _postgresContainer.DisposeAsync();
     }
 
     [Fact]
     public void Run_ShouldReturnHarmonicGreaterThanZero()
     {
         // Arrange
-
+        
         var dataLoader = new TestDataLoader(_fixture.Juniors, _fixture.TeamLeads);
 
         var preferenceGenerator = new RandomPreferenceGenerator();
-        
+
         var strategies = new List<IAssignmentStrategy>
         {
             new GaleShapleyStrategy(),
@@ -42,45 +71,22 @@ public class HackathonTests : IClassFixture<TestDataFixture>
         var strategyFactory = new StrategyFactory(strategies);
 
         var hrManagerOptions = Microsoft.Extensions.Options.Options.Create(new HRManagerOptions { AssignmentStrategy = "GaleShapleyStrategy" });
-
         var hrManager = new HRManager(hrManagerOptions, strategyFactory);
 
         var hrDirector = new HRDirector();
-        
-        var hackathon = new Services.Hackathon(hrManager, hrDirector, dataLoader, preferenceGenerator);
+
+        var hackathon = new Services.Hackathon(hrManager, hrDirector, dataLoader, preferenceGenerator, _dbContext);
 
         // Act
         double harmonic = hackathon.Run();
 
         // Assert
         Assert.True(harmonic > 0, "Гармоничность должна быть больше нуля.");
-        
+
         var allParticipants = _fixture.Juniors.Cast<Participant>().Concat(_fixture.TeamLeads).ToList();
         foreach (var participant in allParticipants)
         {
             Assert.InRange(participant.SatisfactionIndex, 1, int.MaxValue);
         }
-    }
-}
-
-public class TestDataLoader : IDataLoader
-{
-    private readonly List<Junior> _juniors;
-    private readonly List<TeamLead> _teamLeads;
-
-    public TestDataLoader(List<Junior> juniors, List<TeamLead> teamLeads)
-    {
-        _juniors = juniors;
-        _teamLeads = teamLeads;
-    }
-
-    public List<Junior> LoadJuniors()
-    {
-        return _juniors;
-    }
-
-    public List<TeamLead> LoadTeamLeads()
-    {
-        return _teamLeads;
     }
 }
