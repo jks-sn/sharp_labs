@@ -12,15 +12,8 @@ using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Hackathon.Tests.HRManagerTests;
-public class HRManagerTests : IClassFixture<TestDataFixture>
+public class HRManagerTests(TestDataFixture fixture) : IClassFixture<TestDataFixture>
 {
-    private readonly TestDataFixture _fixture;
-
-    public HRManagerTests(TestDataFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public void AssignTeams_ShouldAssignTeamsCorrectlyUsingGaleShapleyStrategy()
     {
@@ -37,7 +30,7 @@ public class HRManagerTests : IClassFixture<TestDataFixture>
         var hrManager = new HRManager(hrManagerOptions, strategyFactory);
 
         // Act
-        var teams = hrManager.AssignTeams(_fixture.Juniors, _fixture.TeamLeads);
+        var teams = hrManager.AssignTeams(fixture.Juniors, fixture.TeamLeads);
 
         // Assert
         Assert.Equal(3, teams.Count);

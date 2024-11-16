@@ -9,16 +9,10 @@ using Xunit;
 namespace Hackathon.Tests.PreferenceGeneratorTests
 {
     [Collection("Database collection")]
-    public class PreferenceGeneratorTests : IClassFixture<TestDataFixture>
+    public class PreferenceGeneratorTests(TestDataFixture fixture, TestDatabaseFixture dbFixture)
+        : IClassFixture<TestDataFixture>
     {
-        private readonly TestDataFixture _fixture;
-        private readonly HackathonDbContext _dbContext;
-
-        public PreferenceGeneratorTests(TestDataFixture fixture, TestDatabaseFixture dbFixture)
-        {
-            _fixture = fixture;
-            _dbContext = dbFixture.DbContext;
-        }
+        private readonly HackathonDbContext _dbContext = dbFixture.DbContext;
 
         [Fact]
         public void GeneratePreferences_ShouldAssignPreferencesToAllParticipants()
@@ -26,8 +20,8 @@ namespace Hackathon.Tests.PreferenceGeneratorTests
             // Arrange
             var preferenceGenerator = new RandomPreferenceGenerator();
 
-            var juniors = _fixture.Juniors;
-            var teamLeads = _fixture.TeamLeads;
+            var juniors = fixture.Juniors;
+            var teamLeads = fixture.TeamLeads;
 
             // Act
             preferenceGenerator.GeneratePreferences(juniors, teamLeads);
