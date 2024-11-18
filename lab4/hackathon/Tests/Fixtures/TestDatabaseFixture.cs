@@ -1,4 +1,4 @@
-// Tests/DatabaseTests/TestDatabaseFixture.cs
+// Tests/Fixtures/TestDatabaseFixture.cs
 
 using System.Threading.Tasks;
 using Hackathon.Data;
@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 namespace Hackathon.Tests.DatabaseTests;
+
 public class TestDatabaseFixture : IAsyncLifetime
 {
     public PostgreSqlContainer PostgresContainer { get; private set; }

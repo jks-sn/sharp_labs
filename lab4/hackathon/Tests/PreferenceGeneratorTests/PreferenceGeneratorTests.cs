@@ -6,38 +6,36 @@ using Hackathon.Tests.DatabaseTests;
 using Hackathon.Tests.Fixtures;
 using Xunit;
 
-namespace Hackathon.Tests.PreferenceGeneratorTests
+namespace Hackathon.Tests.PreferenceGeneratorTests;
+
+public class PreferenceGeneratorTests(TestDataFixture fixture, TestDatabaseFixture dbFixture)
+    : IClassFixture<TestDataFixture>, IClassFixture<TestDatabaseFixture>
 {
-    [Collection("Database collection")]
-    public class PreferenceGeneratorTests(TestDataFixture fixture, TestDatabaseFixture dbFixture)
-        : IClassFixture<TestDataFixture>
+    private readonly TestDatabaseFixture _dbFixture = dbFixture;
+
+    [Fact]
+    public void GeneratePreferences_ShouldAssignPreferencesToAllParticipants()
     {
-        private readonly HackathonDbContext _dbContext = dbFixture.DbContext;
+        // Arrange
+        var preferenceGenerator = new RandomPreferenceGenerator();
 
-        [Fact]
-        public void GeneratePreferences_ShouldAssignPreferencesToAllParticipants()
+        var juniors = fixture.Juniors;
+        var teamLeads = fixture.TeamLeads;
+
+        // Act
+        preferenceGenerator.GeneratePreferences(juniors, teamLeads);
+
+        // Assert
+        foreach (var junior in juniors)
         {
-            // Arrange
-            var preferenceGenerator = new RandomPreferenceGenerator();
+            Assert.NotNull(junior.Preferences);
+            Assert.Equal(teamLeads.Count, junior.Preferences.Count);
+        }
 
-            var juniors = fixture.Juniors;
-            var teamLeads = fixture.TeamLeads;
-
-            // Act
-            preferenceGenerator.GeneratePreferences(juniors, teamLeads);
-
-            // Assert
-            foreach (var junior in juniors)
-            {
-                Assert.NotNull(junior.Preferences);
-                Assert.Equal(teamLeads.Count, junior.Preferences.Count);
-            }
-
-            foreach (var teamLead in teamLeads)
-            {
-                Assert.NotNull(teamLead.Preferences);
-                Assert.Equal(juniors.Count, teamLead.Preferences.Count);
-            }
+        foreach (var teamLead in teamLeads)
+        {
+            Assert.NotNull(teamLead.Preferences);
+            Assert.Equal(juniors.Count, teamLead.Preferences.Count);
         }
     }
 }

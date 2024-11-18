@@ -17,22 +17,15 @@ using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace Hackathon.Tests.HackathonTests;
-public class HackathonTests : IClassFixture<TestDataFixture>, IAsyncLifetime
+
+public class HackathonTests(TestDataFixture fixture) : IClassFixture<TestDataFixture>, IAsyncLifetime
 {
-    private readonly TestDataFixture _fixture;
-    private readonly PostgreSqlContainer _postgresContainer;
-    private HackathonDbContext _dbContext;
-
-    public HackathonTests(TestDataFixture fixture)
-    {
-        _fixture = fixture;
-
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithDatabase("testdb")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
-            .Build();
-    }
+    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithDatabase("testdb")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+    private HackathonDbContext _dbContext = null!;
 
     public async Task InitializeAsync()
     {
@@ -59,7 +52,7 @@ public class HackathonTests : IClassFixture<TestDataFixture>, IAsyncLifetime
     {
         // Arrange
         
-        var dataLoader = new TestDataLoader(_fixture.Juniors, _fixture.TeamLeads);
+        var dataLoader = new TestDataLoader(fixture.Juniors, fixture.TeamLeads);
 
         var preferenceGenerator = new RandomPreferenceGenerator();
 
@@ -83,7 +76,7 @@ public class HackathonTests : IClassFixture<TestDataFixture>, IAsyncLifetime
         // Assert
         Assert.True(harmonic > 0, "Гармоничность должна быть больше нуля.");
 
-        var allParticipants = _fixture.Juniors.Cast<Participant>().Concat(_fixture.TeamLeads).ToList();
+        var allParticipants = fixture.Juniors.Cast<Participant>().Concat(fixture.TeamLeads).ToList();
         foreach (var participant in allParticipants)
         {
             Assert.InRange(participant.SatisfactionIndex, 1, int.MaxValue);

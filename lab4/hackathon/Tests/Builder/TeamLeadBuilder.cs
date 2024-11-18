@@ -3,6 +3,7 @@
 using Hackathon.Model;
 
 namespace Hackathon.Tests.Builder;
+
 public class TeamLeadBuilder
 {
     private string _name = "TeamLead";

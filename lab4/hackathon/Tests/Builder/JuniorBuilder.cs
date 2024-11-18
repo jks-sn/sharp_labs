@@ -3,6 +3,7 @@
 using Hackathon.Model;
 
 namespace Hackathon.Tests.Builder;
+
 public class JuniorBuilder
 {
     private string _name = "Junior";
