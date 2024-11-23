@@ -1,4 +1,4 @@
-// File: Utilities/MathUtils.cs
+// Utilities/MathUtils.cs
 
 using Fractions;
 

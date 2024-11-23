@@ -1,4 +1,4 @@
-// File: Tests/HRManagerTests/HRManagerTests.cs
+// Tests/HRManagerTests/HRManagerTests.cs
 
 using System.Collections.Generic;
 using Hackathon.Model;

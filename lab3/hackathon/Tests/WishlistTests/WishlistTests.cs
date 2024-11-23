@@ -1,4 +1,4 @@
-// File: Tests/WishlistTests/WishlistTests.cs
+// Tests/WishlistTests/WishlistTests.cs
 
 using System.Collections.Generic;
 using System.Linq;

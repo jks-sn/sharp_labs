@@ -1,4 +1,4 @@
-// GaleShapleyStrategy.cs
+// Strategy/GaleShapleyStrategy.cs
 
 using Hackathon.Model;
 

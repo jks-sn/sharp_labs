@@ -1,4 +1,4 @@
-// Model/HRDirector.cs
+// Services/HRDirector.cs
 
 using Hackathon.Model;
 using Hackathon.Options;

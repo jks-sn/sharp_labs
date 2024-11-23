@@ -1,4 +1,4 @@
-// File: Tests/HackathonTests/HackathonTests.cs
+// Tests/HackathonTests/HackathonTests.cs
 
 using System.Collections.Generic;
 using System.Linq;
