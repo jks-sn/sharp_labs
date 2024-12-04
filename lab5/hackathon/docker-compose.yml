@@ -1,0 +1,192 @@
+services:
+#  hr_director:
+#    build:
+#      context: .
+#      dockerfile: HRDirectorService/Dockerfile
+#    environment:
+#      - ConnectionStrings__DefaultConnection=Host=postgres;Database=hackathon;Username=postgres;Password=postgres
+#    depends_on:
+#      - postgres
+#    ports:
+#      - "8083:8083"
+#    networks:
+#      - hackathon_network  
+
+  hr_manager:
+    build:
+      context: .
+      dockerfile: HRManagerService/Dockerfile
+    environment:
+      - HrDirectorUri=http://hr_director:8083/
+#    depends_on:
+#      - hr_director
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/api/hrmanager/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "8082:8082"
+    networks:
+      - hackathon_network
+
+  teamlead-1:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=1
+      - TITLE=TeamLead
+      - NAME=TeamLead1
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+#  teamlead-2:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=2
+#      - TITLE=TeamLead
+#      - NAME=TeamLead2
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#
+#  teamlead-3:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=3
+#      - TITLE=TeamLead
+#      - NAME=TeamLead3
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#
+#  teamlead-4:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=4
+#      - TITLE=TeamLead
+#      - NAME=TeamLead4
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#
+#  teamlead-5:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=5
+#      - TITLE=TeamLead
+#      - NAME=TeamLead5
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+
+  junior-1:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=1
+      - TITLE=Junior
+      - NAME=Junior1
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+#  junior-2:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=2
+#      - TITLE=Junior
+#      - NAME=Junior2
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#
+#  junior-3:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=3
+#      - TITLE=Junior
+#      - NAME=Junior3
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#        
+#  junior-4:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=4
+#      - TITLE=Junior
+#      - NAME=Junior4
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#    
+#  junior-5:
+#    build:
+#      context: .
+#      dockerfile: ParticipantService/Dockerfile
+#    environment:
+#      - ID=5
+#      - TITLE=Junior
+#      - NAME=Junior5
+#      - HrManagerUri=http://hr_manager:8082/
+#    depends_on:
+#      - hr_manager
+#    networks:
+#      - hackathon_network
+#  
+#  postgres:
+#    image: postgres:latest
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=postgres
+#      - POSTGRES_DB=hackathon
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    networks:
+#      - hackathon_network
+#    ports:
+#      - "5432:5432"
+
+networks:
+  hackathon_network:
+    driver: bridge
+  
+volumes:
+  postgres_data:
