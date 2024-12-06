@@ -1,9 +1,10 @@
+// ParticipantService/Program.cs
+
 using ParticipantService;
-using Entities;
-using Entities.Consts;
-using Microsoft.Extensions.Options;
-using Shared.Options;
-using Shared.Services;
+using ParticipantService.Clients;
+using ParticipantService.Options;
+using ParticipantService.Services;
+using Refit;
 
 //заводимся
 var builder = WebApplication.CreateBuilder(args);
@@ -16,51 +17,42 @@ builder.Configuration.AddJsonFile("appsettings.json", true, true);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// Получаем HrManagerUri и AppPort из конфигурации
+var hrManagerUri = builder.Configuration["HrManagerUri"] ?? "http://hr_manager:8082/";
+var appPort = int.Parse(builder.Configuration["APP_PORT"] ?? "8081");
+
+// Настраиваем Kestrel для прослушивания на указанном порту
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
-    options.ListenAnyIP(8081);
+    options.ListenAnyIP(appPort);
 });
 
+// Регистрация опций
 builder.Services.Configure<DataLoaderOptions>(builder.Configuration.GetSection("DataLoaderOptions"));
-
-builder.Services.Configure<ServiceSettings>(options =>
+builder.Services.Configure<RetryOptions>(builder.Configuration.GetSection("RetryOptions"));
+builder.Services.Configure<ServiceOptions>(options =>
 {
-    var id = int.Parse(builder.Configuration["ID"] ?? "1");
-    if (!Enum.TryParse<ParticipantTitle>(builder.Configuration["TITLE"] ?? "Junior", true, out var title))
+    options.Participant = new Entities.Participant
     {
-        throw new ArgumentException("Invalid TITLE in configuration");
-    }
-    
-    var name = builder.Configuration["NAME"] ?? "Armando";
-    var participant = new Participant(id, title, name);
-    options.Participant = participant;
-
-    // Загрузка ProbableTeammates
-    var dataLoader = new DataLoader(
-        Options.Create(builder.Configuration.GetSection("DataLoaderOptions").Get<DataLoaderOptions>()));
-    options.ProbableTeammates = dataLoader.LoadProbableTeammates(title);
+        Id = int.Parse(builder.Configuration["ID"] ?? "1"),
+        Name = builder.Configuration["NAME"] ?? "Participant",
+        Title = Enum.TryParse<Entities.Consts.ParticipantTitle>(builder.Configuration["TITLE"], true, out var title) ? title : Entities.Consts.ParticipantTitle.Junior
+    };
 });
 
+// Регистрация Refit клиента
+builder.Services.AddRefitClient<IHrManagerApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrManagerUri));
+
+// Регистрация сервисов
 builder.Services.AddSingleton<DataLoader>();
+builder.Services.AddSingleton<ParticipantService.Services.ParticipantService>();
+builder.Services.AddHostedService<ParticipantBackgroundService>();
 
-builder.Services.AddSingleton<ParticipantService.ParticipantService>();
-
-// Настраиваем HttpClient для взаимодействия с HRManagerService
-var hrManagerUriString = builder.Configuration["HrManagerUri"] ?? "http://hr_manager";
-if (!Uri.TryCreate(hrManagerUriString, UriKind.Absolute, out var hrManagerUri))
-{
-    throw new Exception("HrManagerUri is not a valid URI");
-}
-builder.Services.AddHttpClient<ParticipantBackgroundService>(client =>
-{
-    client.BaseAddress = hrManagerUri;
-});
-
-builder.Services.AddSingleton<ParticipantBackgroundService>();
-builder.Services.AddHostedService(provider => provider.GetRequiredService<ParticipantBackgroundService>());
-
+// Добавление контроллеров
 builder.Services.AddControllers();
 
+// Создание приложения
 var app = builder.Build();
 
 // Настраиваем маршрутизацию и эндпоинты
@@ -68,6 +60,5 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-app.UseEndpoints(endpoints => endpoints.MapControllers());
-
+// Запуск приложения
 await app.RunAsync();

@@ -1,3 +1,6 @@
+//Entities/ParticipantGroup.cs
+
+
 using Entities.Consts;
 
 namespace Entities;

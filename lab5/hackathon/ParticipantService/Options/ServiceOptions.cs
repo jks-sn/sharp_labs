@@ -8,6 +8,5 @@ namespace ParticipantService.Options
     public class ServiceOptions
     {
         public Participant Participant { get; set; }
-        public List<Participant> ProbableTeammates { get; set; } = new List<Participant>();
     }
 }

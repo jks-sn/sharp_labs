@@ -1,3 +1,5 @@
+//DTO/ParticipantDto.cs
+
 using Entities.Consts;
 
 namespace Dto;

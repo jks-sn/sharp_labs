@@ -1,3 +1,5 @@
+//DTO/WishlistDto.cs
+
 using Entities.Consts;
 
 namespace Dto;

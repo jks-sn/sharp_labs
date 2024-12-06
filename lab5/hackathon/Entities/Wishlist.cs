@@ -1,3 +1,5 @@
+//Entities/Wishlist.cs
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Entities.Consts;
@@ -8,21 +10,24 @@ public class Wishlist
 {
     [Key]
     public int Id { get; set; }
-    [ForeignKey("Participant")]
+    [Required]
     public int ParticipantId { get; set; }
     // Навигационные свойства
-    public Participant? Participant { get; set; }
-    [ForeignKey("Hackathon")]
-    public int? HackathonId { get; set; }
-    public Hackathon? Hackathon { get; set; }
+    [ForeignKey("ParticipantId")]
+    public Participant Participant { get; set; }
+    [Required]
     public ParticipantTitle ParticipantTitle { get; set; }
-    public List<int> DesiredParticipants { get; set; }
-    public Wishlist() {}
+    [Required]
+    public List<int> DesiredParticipants { get; set; } = new List<int>();
 
-    public Wishlist(int participantId, ParticipantTitle title, List<int>desiredParticipants)
+    public int? HackathonId { get; set; }
+    public Hackathon Hackathon { get; set; }
+    public Wishlist() {}
+    
+    public Wishlist(int participantId, ParticipantTitle participantTitle, List<int> desiredParticipants)
     {
         ParticipantId = participantId;
-        ParticipantTitle = title;
+        ParticipantTitle = participantTitle;
         DesiredParticipants = desiredParticipants;
     }
 }

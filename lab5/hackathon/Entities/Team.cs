@@ -1,3 +1,5 @@
+//Entities/Team.cs
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,25 +9,29 @@ public class Team
 {
     [Key]
     public int Id { get; set; }
-
-    [ForeignKey("Hackathon")]
+    
+    [Required]
     public int HackathonId { get; set; }
+    
+    [ForeignKey("HackathonId")]
     public Hackathon Hackathon { get; set; }
     
-    [NotMapped]
+    [Required]
+    public int TeamLeadId { get; set; }
+    
     public Participant TeamLead { get; set; }
-
-    [NotMapped]
+    
+    [Required]
+    public int JuniorId { get; set; }
     public Participant Junior { get; set; }
-
-    // Навигационные свойства
-    public ICollection<Participant> Participants { get; set; }
     
     public Team() {}
-
+    
     public Team(Participant teamLead, Participant junior)
     {
         TeamLead = teamLead;
         Junior = junior;
+        TeamLeadId = teamLead.Id;
+        JuniorId = junior.Id;
     }
 }

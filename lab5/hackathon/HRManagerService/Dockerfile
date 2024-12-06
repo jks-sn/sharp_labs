@@ -1,26 +1,30 @@
 ﻿# HRManagerService/Dockerfile
-
+# Этап 1: Сборка
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /srs
 
-COPY HRDirectorService/*.csproj ./HRDirectorService/
+# Копируем файлы проектов для восстановления зависимостей
 COPY HRManagerService/*.csproj ./HRManagerService/
-COPY TeamleadService/*.csproj ./TeamleadService/
-COPY JuniorService/*.csproj ./JuniorService/
-COPY ParticipantService/*.csproj ./ParticipantService/
 COPY Entities/*.csproj ./Entities/
 COPY DTO/*.csproj ./DTO/
-COPY Repositories/*.csproj ./Repositories/
-COPY Shared/*.csproj ./Shared/
 
+# Восстанавливаем зависимости
 RUN dotnet restore ./HRManagerService/HRManagerService.csproj
 
+# Копируем остальные файлы
 COPY . .
 
-WORKDIR /app/HRManagerService
-RUN dotnet publish HRManagerService.csproj -c Release -o /app/publish
+# Сборка проекта
+WORKDIR "/src/HRManagerService"
+RUN dotnet build "HRManagerService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# Этап 2: Публикация
+FROM build AS publish
+RUN dotnet publish "HRManagerService.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+EXPOSE 8082
 ENTRYPOINT ["dotnet", "HRManagerService.dll"]

@@ -1,3 +1,5 @@
+//Entities/Hackathon.cs
+
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 

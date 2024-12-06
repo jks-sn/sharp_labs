@@ -7,7 +7,6 @@ WORKDIR /src
 
 # Копируем файлы проектов для восстановления зависимостей
 COPY ["ParticipantService/ParticipantService.csproj", "ParticipantService/"]
-COPY ["Shared/Shared.csproj", "Shared/"]
 COPY ["DTO/DTO.csproj", "DTO/"]
 COPY ["Entities/Entities.csproj", "Entities/"]
 

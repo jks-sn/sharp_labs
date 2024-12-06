@@ -1,3 +1,5 @@
+//HRManagerService/Options/ControllerOptions.cs
+
 namespace HRManagerService.Options;
 
 public class ControllerOptions
