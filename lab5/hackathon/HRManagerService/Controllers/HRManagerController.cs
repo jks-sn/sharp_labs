@@ -1,6 +1,7 @@
 //HRManagerService/Controllers/HRManagerController.cs
 
 using System.ComponentModel.DataAnnotations;
+using Dto;
 using Entities;
 using HRManagerService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -24,13 +25,10 @@ public class HRManagerController(
     private readonly ILogger<HRManagerController> _logger = logger;
 
     [HttpGet("health"), AllowAnonymous]
-    public IActionResult HealthCheck()
-    {
-        return Ok(new { Status = "Healthy", ParticipantsNumber = _controllerSettings.ParticipantsNumber });
-    }
+    public Task<IActionResult> HealthCheck() => Task.FromResult<IActionResult>(Ok());
 
     [HttpPost("participant"), AllowAnonymous]
-    public async Task<IActionResult> AddParticipant([FromBody] ParticipantInputModel inputModel)
+    public async Task<IActionResult> AddParticipant([FromBody] ParticipantDto inputModel)
     {
         if (!ModelState.IsValid)
         {
@@ -39,7 +37,7 @@ public class HRManagerController(
 
         try
         {
-            _logger.LogWarning("Добавление участника через HRManagerController: {Id}, {Title}, {Name}",
+            _logger.LogWarning("Добавление участника через HRManagerController: {HackathonId}, {Title}, {Name}",
                 inputModel.Id, inputModel.Title, inputModel.Name);
             await participantService.AddParticipantAsync(inputModel);
             return Ok(new { Message = "Participant added." });
@@ -51,7 +49,7 @@ public class HRManagerController(
     }
 
     [HttpPost("wishlist"), AllowAnonymous]
-    public async Task<IActionResult> AddWishlist([FromBody] WishlistInputModel inputModel)
+    public async Task<IActionResult> AddWishlist([FromBody] WishlistDto inputModel)
     {
         if (!ModelState.IsValid)
         {

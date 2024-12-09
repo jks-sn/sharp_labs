@@ -22,31 +22,31 @@ public class HRDirectorClientService(
         var hackathon = await hackathonRepo.GetByIdAsync(hackathonId);
         if (hackathon == null)
         {
-            logger.LogError("Hackathon with id {Id} not found.", hackathonId);
+            logger.LogError("Hackathon with id {HackathonId} not found.", hackathonId);
             return;
         }
 
         var participantDtos = hackathon.Participants
-            .Select(p => new ParticipantDto(p.Id, p.Title, p.Name))
+            .Select(p => new ParticipantDto(p.Id, p.Title.ToString(), p.Name))
             .ToList();
 
         var wishlistDtos = hackathon.Wishlists
             .Select(w => new WishlistDto(
                 w.ParticipantId,
-                w.Participant.Title,  // <-- берем Title из w.Participant
+                w.Participant.Title.ToString(),  // <-- берем Title из w.Participant
                 w.DesiredParticipants))
             .ToList();
 
         var teamDtos = hackathon.Teams
             .Select(t => new TeamDto(
-                new ParticipantDto(t.TeamLead.Id, t.TeamLead.Title, t.TeamLead.Name),
-                new ParticipantDto(t.Junior.Id, t.Junior.Title, t.Junior.Name)
+                new ParticipantDto(t.TeamLead.Id, t.TeamLead.Title.ToString(), t.TeamLead.Name),
+                new ParticipantDto(t.Junior.Id, t.Junior.Title.ToString(), t.Junior.Name)
             ))
             .ToList();
 
         var hackathonDto = new HackathonDto(hackathon.Id, hackathon.MeanSatisfactionIndex, participantDtos, wishlistDtos, teamDtos);
         
         await hrDirectorApi.SendHackathonDataAsync(hackathonDto);
-        logger.LogWarning("Hackathon {Id} data sent to HRDirector.", hackathonId);
+        logger.LogWarning("Hackathon {HackathonId} data sent to HRDirector.", hackathonId);
     }
 }

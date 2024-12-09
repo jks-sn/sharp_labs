@@ -10,8 +10,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRManagerService", "HRManag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRDirectorService", "HRDirectorService\HRDirectorService.csproj", "{7359E004-33AD-42C2-B2B6-13DCAD71E7BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "Repositories\Repositories.csproj", "{A92BBCF3-3052-4AC7-B00F-2D4D224603B7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,9 +36,5 @@ Global
 		{7359E004-33AD-42C2-B2B6-13DCAD71E7BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7359E004-33AD-42C2-B2B6-13DCAD71E7BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7359E004-33AD-42C2-B2B6-13DCAD71E7BF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A92BBCF3-3052-4AC7-B00F-2D4D224603B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A92BBCF3-3052-4AC7-B00F-2D4D224603B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A92BBCF3-3052-4AC7-B00F-2D4D224603B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A92BBCF3-3052-4AC7-B00F-2D4D224603B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -17,13 +17,17 @@ public class HackathonRepository(HRManagerDbContext context) : IHackathonReposit
         return hackathon;
     }
 
-    public async Task<Hackathon> GetByIdAsync(int id)
+    public async Task<Hackathon> GetByIdAsync(int hackathonId)
     {
         return await context.Hackathons
             .Include(h => h.Participants)
+            .ThenInclude(p => p.Wishlists)
             .Include(h => h.Wishlists)
             .Include(h => h.Teams)
-            .FirstOrDefaultAsync(h => h.Id == id);
+            .ThenInclude(t => t.TeamLead)
+            .Include(h => h.Teams)
+            .ThenInclude(t => t.Junior)
+            .FirstOrDefaultAsync(h => h.Id == hackathonId);
     }
 
     public async Task UpdateHackathonAsync(Hackathon hackathon)

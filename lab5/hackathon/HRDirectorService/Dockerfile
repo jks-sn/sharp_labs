@@ -1,29 +1,33 @@
 ﻿# HRDirectorService/Dockerfile
 
-# Используем SDK для сборки приложения
+# Этап 1: СборкаК
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
 
-# Копируем файлы проектов и выполняем dotnet restore
-COPY HRDirectorService/HRDirectorService.csproj ./HRDirectorService/
-COPY Entities/Entities.csproj ./Entities/
-COPY Message/Message.csproj ./Message/
-COPY Repositories/Repositories.csproj ./Repositories/
-COPY Shared/Shared.csproj ./Shared/
-COPY DTO/DTO.csproj ./DTO/
+# Копируем файлы проектов для восстановления зависимостей
+COPY ["HRDirectorService/HRDirectorService.csproj", "HRDirectorService/"]
+COPY ["DTO/DTO.csproj", "DTO/"]
+COPY ["Entities/Entities.csproj", "Entities/"]
 
-RUN dotnet restore ./HRDirectorService/HRDirectorService.csproj
+# Восстанавливаем зависимости
+RUN dotnet restore "HRDirectorService/HRDirectorService.csproj"
 
-# Копируем остальной код
+# Копируем остальные файлы
 COPY . .
 
-# Сборка и публикация приложения
-WORKDIR /app/HRDirectorService
-RUN dotnet publish HRDirectorService.csproj -c Release -o /app/publish
+# Сборка проекта
+WORKDIR "/src/HRDirectorService"
+RUN dotnet build "HRDirectorService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-RUN dotnet --list-runtimes
-# Создаем финальный образ
+# Этап 2: Публикация
+FROM build AS publish
+WORKDIR "/src/HRDirectorService"
+RUN dotnet publish "HRDirectorService.csproj" -c $BUILD_CONFIGURATION -o /app/publish
+
+# Этап 3: Запуск
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=publish /app/publish .
+EXPOSE 8083
 ENTRYPOINT ["dotnet", "HRDirectorService.dll"]

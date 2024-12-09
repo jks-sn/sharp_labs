@@ -17,7 +17,7 @@ public class TeamRepository(HRManagerDbContext context) : ITeamRepository
         // Отладочный вывод входящих данных
         foreach (var team in teams)
         {
-            Console.WriteLine($"Adding Team: Id={team.Id}, HackathonId={team.HackathonId}, " +
+            Console.WriteLine($"Adding Team: HackathonId={team.Id}, HackathonId={team.HackathonId}, " +
                               $"TeamLeadId={team.TeamLeadId}, JuniorId={team.JuniorId}");
         }
 
@@ -31,7 +31,7 @@ public class TeamRepository(HRManagerDbContext context) : ITeamRepository
             Console.WriteLine("Duplicate Teams Detected:");
             foreach (var team in duplicateTeams)
             {
-                Console.WriteLine($"Duplicate Team: Id={team.Id}, HackathonId={team.HackathonId}, " +
+                Console.WriteLine($"Duplicate Team: HackathonId={team.Id}, HackathonId={team.HackathonId}, " +
                                   $"TeamLeadId={team.TeamLeadId}, JuniorId={team.JuniorId}");
             }
             throw new InvalidOperationException("Attempting to add duplicate teams.");

@@ -1,5 +1,6 @@
 // ParticipantService/Clients/IHrManagerApi.cs
 
+using Dto;
 using Refit;
 using Entities;
 
@@ -7,10 +8,10 @@ namespace ParticipantService.Clients;
 public interface IHrManagerApi
 {
     [Post("/api/hr_manager/participant")]
-    Task<ApiResponse<ApiResponseMessage>> AddParticipantAsync([Body] ParticipantInputModel participant);
+    Task<ApiResponse<ApiResponseMessage>> AddParticipantAsync([Body] ParticipantDto participant);
     
     [Post("/api/hr_manager/wishlist")]
-    Task<ApiResponse<ApiResponseMessage>> AddWishlistAsync([Body] WishlistInputModel wishlist);
+    Task<ApiResponse<ApiResponseMessage>> AddWishlistAsync([Body] WishlistDto wishlist);
     
     [Get("/api/hr_manager/health")]
     Task<ApiResponse<HealthCheckResponse>> HealthCheckAsync();

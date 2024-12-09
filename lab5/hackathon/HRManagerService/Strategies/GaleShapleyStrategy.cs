@@ -161,7 +161,7 @@ public class GaleShapleyStrategy(ILogger<GaleShapleyStrategy> logger) : ITeamBui
                     return null;
                 }
                 var team = new Team(teamLead, junior);
-                logger.LogWarning($"Создана команда: Id {team.Id}, Тимлид {team.TeamLeadId} - {teamLead.Name}, Джун {team.JuniorId} - {junior.Name}");
+                logger.LogWarning($"Создана команда: HackathonId {team.Id}, Тимлид {team.TeamLeadId} - {teamLead.Name}, Джун {team.JuniorId} - {junior.Name}");
                 return team;
             })
             .Where(t => t != null)
@@ -169,7 +169,7 @@ public class GaleShapleyStrategy(ILogger<GaleShapleyStrategy> logger) : ITeamBui
             
             foreach (var team in teams)
             {
-                Console.WriteLine($"Сделали Команды: Id={team.Id}, HackathonId={team.HackathonId}, " +
+                Console.WriteLine($"Сделали Команды: HackathonId={team.Id}, HackathonId={team.HackathonId}, " +
                                   $"TeamLeadId={team.TeamLeadId}, JuniorId={team.JuniorId}");
             }
             

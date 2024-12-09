@@ -4,4 +4,4 @@ using Entities.Consts;
 
 namespace Dto;
 
-public record WishlistDto(int ParticipantId, ParticipantTitle ParticipantTitle, List<int> DesiredParticipants);
+public record WishlistDto(int ParticipantId, string ParticipantTitle, List<int> DesiredParticipants);

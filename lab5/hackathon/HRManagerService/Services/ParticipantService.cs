@@ -5,6 +5,7 @@ using Entities;
 using Entities.Consts;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using Dto;
 using HRManagerService.Interfaces;
 
 namespace HRManagerService.Services;
@@ -12,15 +13,15 @@ namespace HRManagerService.Services;
 public class ParticipantService(IParticipantRepository participantRepo, IWishlistRepository wishlistRepo, ILogger<ParticipantService> logger)
     : IParticipantService
 {
-    public async Task AddParticipantAsync(ParticipantInputModel input)
+    public async Task AddParticipantAsync(ParticipantDto input)
     {
         var title = ParticipantTitleExtensions.FromString(input.Title);
         var participant = new Participant(input.Id, title, input.Name);
-        logger.LogWarning("Adding participant: Id={Id}, Title={Title}, Name={Name}", input.Id, input.Title, input.Name);
+        logger.LogWarning("Adding participant: HackathonId={HackathonId}, Title={Title}, Name={Name}", input.Id, input.Title, input.Name);
         await participantRepo.AddParticipantAsync(participant);
     }
 
-    public async Task AddWishlistAsync(WishlistInputModel input)
+    public async Task AddWishlistAsync(WishlistDto input)
     {
         var wishlist = new Wishlist
         {

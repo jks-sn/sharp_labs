@@ -5,46 +5,47 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=hrmanagerdb
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 10s
       retries: 5
       start_period: 5s
-      
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
     networks:
       - hackathon_network
     ports:
       - "5432:5432"
-  #  hr_director:
-  #    build:
-  #      context: .
-  #      dockerfile: HRDirectorService/Dockerfile
-  #    environment:
-  #      - ConnectionStrings__DefaultConnection=Host=postgres;Database=hackathon;Username=postgres;Password=postgres
-  #    depends_on:
-  #      - postgres
-  #    ports:
-  #      - "8083:8083"
-  #    networks:
-  #      - hackathon_network  
+  
+  hr_director:
+    build:
+      context: .
+      dockerfile: HRDirectorService/Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8083/health || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    networks:
+      - hackathon_network  
 
   hr_manager:
     build:
       context: .
       dockerfile: HRManagerService/Dockerfile
-    environment:
-      - HrDirectorUri=http://hr_director:8083/
     depends_on:
-      postgres:
-        condition: service_healthy
-    #      - hr_director
+      - postgres
+      - hr_director
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8082/api/hr_manager/health" ]
+      test: [ "CMD", "curl", "--fail", "http://localhost:8082/api/hr_manager/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3

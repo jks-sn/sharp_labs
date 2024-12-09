@@ -1,5 +1,6 @@
 // ParticipantService/ParticipantBackgroundService.cs
 
+using Dto;
 using Entities;
 using Microsoft.Extensions.Options;
 using ParticipantService.Clients;
@@ -46,26 +47,26 @@ public class ParticipantBackgroundService : BackgroundService
             await SendWishlistAsync(wishlist, stoppingToken);
 
             _logger.LogWarning("ParticipantBackgroundService успешно отправил данные участника и Wishlist.");
-            
-            return; 
+
+            return;
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Произошла критическая ошибка в ParticipantBackgroundService.");
         }
+
         await Task.CompletedTask;
     }
 
     private async Task SendParticipantAsync(Participant participantToSend, CancellationToken stoppingToken)
     {
-        var participantInputModel = new ParticipantInputModel
-        {
-            Id = participantToSend.Id,
-            Title = participantToSend.Title.ToString(),
-            Name = participantToSend.Name
-        };
+        var participantDto = new ParticipantDto(
+            participantToSend.Id,
+            participantToSend.Title.ToString(),
+            participantToSend.Name
+        );
 
-        _logger.LogWarning("Отправка данных участника: {@Participant}", participantInputModel);
+        _logger.LogWarning("Отправка данных участника: {@Participant}", participantDto);
 
         var delay = TimeSpan.FromSeconds(_retryOptions.InitialDelaySeconds);
 
@@ -79,7 +80,7 @@ public class ParticipantBackgroundService : BackgroundService
 
             try
             {
-                var response = await _hrManagerApi.AddParticipantAsync(participantInputModel);
+                var response = await _hrManagerApi.AddParticipantAsync(participantDto);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -118,14 +119,12 @@ public class ParticipantBackgroundService : BackgroundService
 
     private async Task SendWishlistAsync(Wishlist wishlistToSend, CancellationToken stoppingToken)
     {
-        var wishlistInputModel = new WishlistInputModel
-        {
-            ParticipantId = wishlistToSend.ParticipantId,
-            ParticipantTitle = wishlistToSend.ParticipantTitle.ToString(),
-            DesiredParticipants = wishlistToSend.DesiredParticipants
-        };
+        var wishlistDto = new WishlistDto(
+            wishlistToSend.ParticipantId,
+            wishlistToSend.ParticipantTitle.ToString(),
+            wishlistToSend.DesiredParticipants);
 
-        _logger.LogWarning("Отправка Wishlist: {@Wishlist}", wishlistInputModel);
+        _logger.LogWarning("Отправка Wishlist: {@Wishlist}", wishlistDto);
 
         var delay = TimeSpan.FromSeconds(_retryOptions.InitialDelaySeconds);
 
@@ -139,7 +138,7 @@ public class ParticipantBackgroundService : BackgroundService
 
             try
             {
-                var response = await _hrManagerApi.AddWishlistAsync(wishlistInputModel);
+                var response = await _hrManagerApi.AddWishlistAsync(wishlistDto);
 
                 if (response.IsSuccessStatusCode)
                 {
