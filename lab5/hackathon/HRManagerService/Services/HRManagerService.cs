@@ -1,3 +1,5 @@
+//HRManagerService/Services/HRManagerService.cs
+
 using System.Linq;
 using System.Threading.Tasks;
 using Entities;
@@ -9,45 +11,35 @@ using Microsoft.Extensions.Options;
 
 namespace HRManagerService.Services;
 
-public class HRManagerService
+public class HRManagerService(
+    IParticipantRepository participantRepo,
+    IWishlistRepository wishlistRepo,
+    IOptions<Options.ControllerOptions> controllerOptions,
+    ILogger<HRManagerService> logger)
 {
-    private readonly IParticipantRepository _participantRepo;
-    private readonly IWishlistRepository _wishlistRepo;
-    private readonly ILogger<HRManagerService> _logger;
-    private readonly int _expectedParticipantCount;
+    private readonly int _expectedParticipantCount = controllerOptions.Value.ParticipantsNumber;
 
     private readonly TaskCompletionSource<bool> _participantsTcs = new();
     private readonly TaskCompletionSource<bool> _wishlistsTcs = new();
 
-    public HRManagerService(
-        IParticipantRepository participantRepo,
-        IWishlistRepository wishlistRepo,
-        IOptions<Options.ControllerOptions> controllerOptions,
-        ILogger<HRManagerService> logger)
-    {
-        _participantRepo = participantRepo;
-        _wishlistRepo = wishlistRepo;
-        _logger = logger;
-        _expectedParticipantCount = controllerOptions.Value.ParticipantsNumber;
-    }
-
     public async Task AddParticipantAsync(Participant participant)
     {
-        await _participantRepo.AddParticipantAsync(participant);
-        var count = await _participantRepo.CountAsync();
-        _logger.LogInformation("Participant added. Total: {Count}/{Expected}", count, _expectedParticipantCount);
+        await participantRepo.AddParticipantAsync(participant);
+        var count = await participantRepo.CountAsync();
+        logger.LogInformation("AAAAAAAAAAAAAAAAAAAAParticipant added. Total: {Count}/{Expected}", count, _expectedParticipantCount);
 
         if (count >= _expectedParticipantCount)
         {
+            logger.LogInformation("СТАРТУУУУУУУУУУУУУУУУУУУУУУУУУУУЕМ");
             _participantsTcs.TrySetResult(true);
         }
     }
 
     public async Task AddWishlistAsync(Wishlist wishlist)
     {
-        await _wishlistRepo.AddWishlistAsync(wishlist);
-        var count = await _wishlistRepo.CountAsync();
-        _logger.LogInformation("Wishlist added. Total: {Count}/{Expected}", count, _expectedParticipantCount);
+        await wishlistRepo.AddWishlistAsync(wishlist);
+        var count = await wishlistRepo.CountAsync();
+        logger.LogInformation("AAAAAAAAAAAAAAAAAAAAAAAWishlist added. Total: {Count}/{Expected}", count, _expectedParticipantCount);
 
         if (count >= _expectedParticipantCount)
         {
@@ -73,11 +65,11 @@ public class HRManagerService
 
     public async Task<Participant[]> GetParticipantsAsync()
     {
-        return (await _participantRepo.GetAllAsync()).ToArray();
+        return (await participantRepo.GetAllAsync()).ToArray();
     }
 
     public async Task<Wishlist[]> GetWishlistsAsync()
     {
-        return (await _wishlistRepo.GetAllAsync()).ToArray();
+        return (await wishlistRepo.GetAllAsync()).ToArray();
     }
 }

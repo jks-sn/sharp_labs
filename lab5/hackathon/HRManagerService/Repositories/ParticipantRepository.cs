@@ -1,7 +1,10 @@
+//HRManagerService/Repositories/ParticipantRepository.cs
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Entities;
+using Entities.Consts;
 using HRManagerService.Data;
 using HRManagerService.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -21,9 +24,9 @@ public class ParticipantRepository(HRManagerDbContext context) : IParticipantRep
         return await context.Participants.ToListAsync();
     }
 
-    public async Task<Participant> GetByIdAsync(int id)
+    public async Task<Participant> GetByIdAsync(int id, ParticipantTitle title)
     {
-        return await context.Participants.FindAsync(id);
+        return await context.Participants.FindAsync(title, id);
     }
 
     public async Task<int> CountAsync()

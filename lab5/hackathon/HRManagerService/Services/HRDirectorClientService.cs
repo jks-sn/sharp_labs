@@ -1,3 +1,5 @@
+//HRManagerService/Services/HRDirectorClientService.cs
+
 using System.Linq;
 using System.Threading.Tasks;
 using Dto;
@@ -29,7 +31,10 @@ public class HRDirectorClientService(
             .ToList();
 
         var wishlistDtos = hackathon.Wishlists
-            .Select(w => new WishlistDto(w.ParticipantId, w.ParticipantTitle, w.DesiredParticipants))
+            .Select(w => new WishlistDto(
+                w.ParticipantId,
+                w.Participant.Title,  // <-- берем Title из w.Participant
+                w.DesiredParticipants))
             .ToList();
 
         var teamDtos = hackathon.Teams
@@ -40,7 +45,7 @@ public class HRDirectorClientService(
             .ToList();
 
         var hackathonDto = new HackathonDto(hackathon.Id, hackathon.MeanSatisfactionIndex, participantDtos, wishlistDtos, teamDtos);
-
+        
         await hrDirectorApi.SendHackathonDataAsync(hackathonDto);
         logger.LogInformation("Hackathon {Id} data sent to HRDirector.", hackathonId);
     }

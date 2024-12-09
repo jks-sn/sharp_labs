@@ -23,6 +23,7 @@ public class ParticipantService
 
         // Загружаем потенциальных напарников через DataLoader
         _probableTeammates = dataLoader.LoadProbableTeammates(teammateTitle);
+        Console.WriteLine($"I AM a {_participant.Name} and my teammate: {_probableTeammates[0].Name}");
     }
 
     public Participant GetParticipant()

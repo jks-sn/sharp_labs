@@ -1,10 +1,18 @@
 services:
   postgres:
     image: postgres:latest
+    container_name: postgresql
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=hackathon
+      - POSTGRES_DB=hrmanagerdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+      
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -31,7 +39,8 @@ services:
     environment:
       - HrDirectorUri=http://hr_director:8083/
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     #      - hr_director
     restart: unless-stopped
     healthcheck:
@@ -51,68 +60,68 @@ services:
     environment:
       - ID=1
       - TITLE=TeamLead
-      - NAME=TeamLead1
+      - NAME=Филиппова Ульяна
       - HrManagerUri=http://hr_manager:8082/
     depends_on:
       - hr_manager
     networks:
       - hackathon_network
   
-  #  teamlead-2:
-  #    build:
-  #      context: .
-  #      dockerfile: ParticipantService/Dockerfile
-  #    environment:
-  #      - ID=2
-  #      - TITLE=TeamLead
-  #      - NAME=TeamLead2
-  #      - HrManagerUri=http://hr_manager:8082/
-  #    depends_on:
-  #      - hr_manager
-  #    networks:
-  #      - hackathon_network
-  #
-  #  teamlead-3:
-  #    build:
-  #      context: .
-  #      dockerfile: ParticipantService/Dockerfile
-  #    environment:
-  #      - ID=3
-  #      - TITLE=TeamLead
-  #      - NAME=TeamLead3
-  #      - HrManagerUri=http://hr_manager:8082/
-  #    depends_on:
-  #      - hr_manager
-  #    networks:
-  #      - hackathon_network
-  #
-  #  teamlead-4:
-  #    build:
-  #      context: .
-  #      dockerfile: ParticipantService/Dockerfile
-  #    environment:
-  #      - ID=4
-  #      - TITLE=TeamLead
-  #      - NAME=TeamLead4
-  #      - HrManagerUri=http://hr_manager:8082/
-  #    depends_on:
-  #      - hr_manager
-  #    networks:
-  #      - hackathon_network
-  #
-  #  teamlead-5:
-  #    build:
-  #      context: .
-  #      dockerfile: ParticipantService/Dockerfile
-  #    environment:
-  #      - ID=5
-  #      - TITLE=TeamLead
-  #      - NAME=TeamLead5
-  #      - HrManagerUri=http://hr_manager:8082/
-  #    depends_on:
-  #      - hr_manager
-  #    networks:
-  #      - hackathon_network
+  teamlead-2:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=2
+      - TITLE=TeamLead
+      - NAME=Николаев Григорий
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-3:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=3
+      - TITLE=TeamLead
+      - NAME=Андреева Вероника
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-4:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=4
+      - TITLE=TeamLead
+      - NAME=Коротков Михаил
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-5:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=5
+      - TITLE=TeamLead
+      - NAME=Кузнецов Александр
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
 
   junior-1:
     build:
@@ -121,69 +130,69 @@ services:
     environment:
       - ID=1
       - TITLE=Junior
-      - NAME=Junior1
+      - NAME=Юдин Адам
       - HrManagerUri=http://hr_manager:8082/
     depends_on:
       - hr_manager
     networks:
       - hackathon_network
 
-#  junior-2:
-#    build:
-#      context: .
-#      dockerfile: ParticipantService/Dockerfile
-#    environment:
-#      - ID=2
-#      - TITLE=Junior
-#      - NAME=Junior2
-#      - HrManagerUri=http://hr_manager:8082/
-#    depends_on:
-#      - hr_manager
-#    networks:
-#      - hackathon_network
-#
-#  junior-3:
-#    build:
-#      context: .
-#      dockerfile: ParticipantService/Dockerfile
-#    environment:
-#      - ID=3
-#      - TITLE=Junior
-#      - NAME=Junior3
-#      - HrManagerUri=http://hr_manager:8082/
-#    depends_on:
-#      - hr_manager
-#    networks:
-#      - hackathon_network
-#        
-#  junior-4:
-#    build:
-#      context: .
-#      dockerfile: ParticipantService/Dockerfile
-#    environment:
-#      - ID=4
-#      - TITLE=Junior
-#      - NAME=Junior4
-#      - HrManagerUri=http://hr_manager:8082/
-#    depends_on:
-#      - hr_manager
-#    networks:
-#      - hackathon_network
-#    
-#  junior-5:
-#    build:
-#      context: .
-#      dockerfile: ParticipantService/Dockerfile
-#    environment:
-#      - ID=5
-#      - TITLE=Junior
-#      - NAME=Junior5
-#      - HrManagerUri=http://hr_manager:8082/
-#    depends_on:
-#      - hr_manager
-#    networks:
-#      - hackathon_network
-#  
+  junior-2:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=2
+      - TITLE=Junior
+      - NAME=Яшина Яна
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-3:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=3
+      - TITLE=Junior
+      - NAME=Никитина Вероника
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-4:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=4
+      - TITLE=Junior
+      - NAME=Рябинин Александр
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-5:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=5
+      - TITLE=Junior
+      - NAME=Ильин Тимофей
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
 
 networks:
   hackathon_network:

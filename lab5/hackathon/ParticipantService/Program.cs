@@ -1,5 +1,6 @@
 // ParticipantService/Program.cs
 
+using Microsoft.Extensions.Options;
 using ParticipantService;
 using ParticipantService.Clients;
 using ParticipantService.Options;
@@ -40,6 +41,7 @@ builder.Services.Configure<ServiceOptions>(options =>
     };
 });
 
+var id = int.Parse(builder.Configuration["ID"] ?? "1");
 // Регистрация Refit клиента
 builder.Services.AddRefitClient<IHrManagerApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrManagerUri));
@@ -59,6 +61,10 @@ var app = builder.Build();
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
+
+Console.WriteLine($"Я номер {id} Жду {10 + 1000 * id} секунд...");
+await Task.Delay(10000 + 1000 * id); // 10000 миллисекунд = 10 секунд
+Console.WriteLine($"Номер {id}, Продолжаю выполнение.");
 
 // Запуск приложения
 await app.RunAsync();

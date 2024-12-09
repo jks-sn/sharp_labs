@@ -25,7 +25,6 @@ public class DataLoader(IOptions<DataLoaderOptions> options)
         {
             throw new FileNotFoundException($"CSV file not found at path: {filePath}");
         }
-
         return CsvParser.ParseCsvFileWithParticipants(filePath, title).ToList();
     }
 }

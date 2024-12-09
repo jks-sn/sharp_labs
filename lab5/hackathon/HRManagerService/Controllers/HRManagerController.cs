@@ -1,5 +1,8 @@
+//HRManagerService/Controllers/HRManagerController.cs
+
 using System.ComponentModel.DataAnnotations;
 using Entities;
+using HRManagerService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,7 +15,7 @@ namespace HRManagerService.Controllers;
 [ApiController]
 [Route("api/hr_manager")]
 public class HRManagerController(
-    ParticipantService participantService,
+    IParticipantService participantService,
     IOptions<ControllerOptions> controllerSettings,
     ILogger<HRManagerController> logger)
     : ControllerBase
@@ -25,7 +28,7 @@ public class HRManagerController(
     {
         return Ok(new { Status = "Healthy", ParticipantsNumber = _controllerSettings.ParticipantsNumber });
     }
-    
+
     [HttpPost("participant"), AllowAnonymous]
     public async Task<IActionResult> AddParticipant([FromBody] ParticipantInputModel inputModel)
     {
@@ -36,6 +39,8 @@ public class HRManagerController(
 
         try
         {
+            _logger.LogInformation("Добавление участника через HRManagerController: {Id}, {Title}, {Name}",
+                inputModel.Id, inputModel.Title, inputModel.Name);
             await participantService.AddParticipantAsync(inputModel);
             return Ok(new { Message = "Participant added." });
         }
@@ -44,7 +49,7 @@ public class HRManagerController(
             return BadRequest(new { Message = ex.Message });
         }
     }
-    
+
     [HttpPost("wishlist"), AllowAnonymous]
     public async Task<IActionResult> AddWishlist([FromBody] WishlistInputModel inputModel)
     {
@@ -55,6 +60,9 @@ public class HRManagerController(
 
         try
         {
+            _logger.LogInformation(
+                "Добавление wishlist через HRManagerController: ParticipantId={ParticipantId}, ParticipantTitle={ParticipantTitle}, Count={Count}",
+                inputModel.ParticipantId, inputModel.ParticipantTitle.ToString(), inputModel.DesiredParticipants.Count);
             await participantService.AddWishlistAsync(inputModel);
             return Ok(new { Message = "Wishlist added." });
         }

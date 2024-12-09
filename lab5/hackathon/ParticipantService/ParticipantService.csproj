@@ -32,6 +32,12 @@
   <None Update="Resources\Teamleads5.csv">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
   </None>
+  <None Update="Resources\Juniors1.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+  <None Update="Resources\Teamleads1.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
 </ItemGroup>
 
 <ItemGroup>

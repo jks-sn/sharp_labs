@@ -1,3 +1,5 @@
+//HRManagerService/Services/HackathonService.cs
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using HRManagerService.Interface;
 using HRManagerService.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace HRManagerService.Services
 {
@@ -14,27 +17,28 @@ namespace HRManagerService.Services
         HRManagerDbContext dbContext,
         ITeamBuildingStrategy teamBuildingStrategy,
         IHRDirectorClient hrDirectorClient,
+        IOptions<Options.ControllerOptions> controllerOptions,
         ILogger<HackathonService> logger)
         : IHackathonService
     {
         public async Task CreateHackathonAsync()
         {
-            // Проверяем, есть ли достаточно участников
+            
             var totalParticipants = await dbContext.Participants.CountAsync();
-            if (totalParticipants < 10) // Например, минимальное количество участников
+            if (totalParticipants < controllerOptions.Value.ParticipantsNumber)
             {
                 logger.LogInformation("Недостаточно участников для создания хакатона.");
                 return;
             }
-
-            // Создаём новый хакатон
+            
             var hackathon = new Hackathon();
             dbContext.Hackathons.Add(hackathon);
             await dbContext.SaveChangesAsync();
-
-            // Получаем участников и их Wishlist
+            
             var participants = await dbContext.Participants.ToListAsync();
-            var wishlists = await dbContext.Wishlists.ToListAsync();
+            var wishlists = await dbContext.Wishlists
+                .Include(w => w.Participant) // Важно подгрузить Participant, чтобы знать его Title
+                .ToListAsync();
 
             // Связываем участников и Wishlist с хакатоном
             foreach (var participant in participants)
@@ -54,8 +58,8 @@ namespace HRManagerService.Services
             var juniors = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.Junior);
 
             // Получаем Wishlist по ролям
-            var teamLeadWishlists = wishlists.Where(w => w.ParticipantTitle == Entities.Consts.ParticipantTitle.TeamLead);
-            var juniorWishlists = wishlists.Where(w => w.ParticipantTitle == Entities.Consts.ParticipantTitle.Junior);
+            var teamLeadWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.TeamLead);
+            var juniorWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.Junior);
 
             // Генерируем команды
             var teams = teamBuildingStrategy.BuildTeams(teamLeads, juniors, teamLeadWishlists, juniorWishlists).ToList();

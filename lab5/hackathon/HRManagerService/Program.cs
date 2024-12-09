@@ -2,11 +2,14 @@
 
 using Entities;
 using HRManagerService.Clients;
+using HRManagerService.Data;
 using HRManagerService.Interface;
 using HRManagerService.Interfaces;
 using HRManagerService.Options;
 using HRManagerService.Repositories;
 using HRManagerService.Services;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Добавляем конфигурацию из переменных окружения и файла appsettings.json
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+
 
 // Настраиваем логирование
 builder.Logging.ClearProviders();
@@ -30,9 +35,14 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.Configure<ControllerOptions>(builder.Configuration.GetSection("ControllerOptions"));
 builder.Services.Configure<RetryOptions>(builder.Configuration.GetSection("RetryOptions"));
 
-// Добавляем миграции от EF (при необходимости)
-// dotnet ef migrations add InitialCreate -p HRManagerService -s HRManagerService
-// dotnet ef database update -p HRManagerService -s HRManagerService
+// Подключение к Postgres через EF Core
+var connectionString = builder.Configuration.GetConnectionString("HRManagerConnection");
+NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
+builder.Services.AddDbContext<HRManagerDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.EnableDetailedErrors();
+}, ServiceLifetime.Transient);
 
 // Регистрация Refit-клиента для HRDirectorService
 var hrDirectorUri = builder.Configuration["HrDirectorUri"] ?? "http://hr_director:8083/";
@@ -40,17 +50,18 @@ builder.Services.AddRefitClient<IHRDirectorApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrDirectorUri));
 
 // Регистрируем стратегии, сервисы
-builder.Services.AddSingleton<ITeamBuildingStrategy, GaleShapleyStrategy>();
+builder.Services.AddTransient<ITeamBuildingStrategy, GaleShapleyStrategy>();
 
-builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
-builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-builder.Services.AddScoped<ITeamRepository, TeamRepository>();
-builder.Services.AddScoped<IHackathonRepository, HackathonRepository>();
+builder.Services.AddTransient<IParticipantRepository, ParticipantRepository>();
+builder.Services.AddTransient<IWishlistRepository, WishlistRepository>();
+builder.Services.AddTransient<ITeamRepository, TeamRepository>();
+builder.Services.AddTransient<IHackathonRepository, HackathonRepository>();
 
-builder.Services.AddScoped<HRManagerService.Services.HRManagerService>();
-builder.Services.AddScoped<IParticipantService, ParticipantService>();
-builder.Services.AddScoped<IHRDirectorClient, HRDirectorClientService>();
-builder.Services.AddHostedService<HRManagerBackgroundService>();
+builder.Services.AddTransient<HRManagerService.Services.HRManagerService>();
+builder.Services.AddTransient<IParticipantService, ParticipantService>();
+builder.Services.AddTransient<IHRDirectorClient, HRDirectorClientService>();
+
+builder.Services.AddTransient<HRManagerBackgroundService>();
 
 
 // Регистрируем контроллеры
@@ -61,9 +72,16 @@ builder.Services.AddControllers()
 // Собираем приложение
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HRManagerDbContext>();
+    db.Database.Migrate();
+}
+
 // Настраиваем маршрутизацию и эндпоинты
 app.UseRouting();
-app.UseEndpoints(endpoints => endpoints.MapControllers());
+app.UseAuthorization();
+app.MapControllers();
 
 // Запускаем приложение
 await app.RunAsync();

@@ -19,7 +19,7 @@ public class ParticipantBackgroundService : BackgroundService
     public ParticipantBackgroundService(
         IHrManagerApi hrManagerApi,
         IOptions<RetryOptions> retryOptions,
-        Services.ParticipantService participantService,
+        ParticipantService participantService,
         ILogger<ParticipantBackgroundService> logger)
     {
         _hrManagerApi = hrManagerApi;
@@ -46,11 +46,14 @@ public class ParticipantBackgroundService : BackgroundService
             await SendWishlistAsync(wishlist, stoppingToken);
 
             _logger.LogInformation("ParticipantBackgroundService успешно отправил данные участника и Wishlist.");
+            
+            return; 
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Произошла критическая ошибка в ParticipantBackgroundService.");
         }
+        await Task.CompletedTask;
     }
 
     private async Task SendParticipantAsync(Participant participantToSend, CancellationToken stoppingToken)

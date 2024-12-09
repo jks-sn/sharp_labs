@@ -2,27 +2,23 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Entities.Consts;
 
 namespace Entities;
 
 public class Team
 {
-    [Key]
     public int Id { get; set; }
-    
-    [Required]
     public int HackathonId { get; set; }
-    
-    [ForeignKey("HackathonId")]
     public Hackathon Hackathon { get; set; }
     
-    [Required]
-    public int TeamLeadId { get; set; }
     
+    public int TeamLeadId { get; set; }
+    public ParticipantTitle TeamLeadTitle { get; set; }
     public Participant TeamLead { get; set; }
     
-    [Required]
     public int JuniorId { get; set; }
+    public ParticipantTitle JuniorTitle { get; set; }
     public Participant Junior { get; set; }
     
     public Team() {}

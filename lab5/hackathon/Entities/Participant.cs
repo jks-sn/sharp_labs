@@ -7,15 +7,15 @@ namespace Entities;
 
 public class Participant
 {
-    [Key] public int Id { get; set; }
-    [Required] public ParticipantTitle Title { get; set; }
-    [Required] public string Name { get; set; }
+    public int Id { get; set; }
+    public ParticipantTitle Title { get; set; }
+    public string Name { get; set; }
 
-    public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
-
+    
     public int? HackathonId { get; set; }
     public Hackathon Hackathon { get; set; }
-
+    public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+    
     public Participant()
     {
     }
@@ -29,7 +29,15 @@ public class Participant
 
     public Wishlist MakeWishlist(IEnumerable<Participant> probableTeammates)
     {
-        var desiredParticipants = new List<int>(probableTeammates.Select(e => e.Id).OrderBy(_ => Random.Shared.Next()));
-        return new Wishlist(participantId: Id, participantTitle: Title, desiredParticipants);
+        var desiredParticipants = probableTeammates
+            .Select(e => e.Id)
+            .OrderBy(_ => Guid.NewGuid())
+            .ToList();
+        return new Wishlist
+        {
+            ParticipantId = Id,
+            ParticipantTitle = Title,
+            DesiredParticipants = desiredParticipants
+        };
     }
 }

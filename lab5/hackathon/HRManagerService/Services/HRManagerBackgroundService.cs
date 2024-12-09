@@ -1,3 +1,5 @@
+//HRManagerService/Services/HRManagerBackgroundService.cs
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -23,7 +25,6 @@ public class HRManagerBackgroundService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("HRManagerBackgroundService запущен.");
-
         try
         {
             logger.LogInformation("Ожидание получения всех participants.");
@@ -38,8 +39,9 @@ public class HRManagerBackgroundService(
             var teamLeads = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.TeamLead);
             var juniors = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.Junior);
 
-            var teamLeadsWishlists = wishlists.Where(w => w.ParticipantTitle == Entities.Consts.ParticipantTitle.TeamLead);
-            var juniorWishlists = wishlists.Where(w => w.ParticipantTitle == Entities.Consts.ParticipantTitle.Junior);
+            var teamLeadsWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.TeamLead);
+            var juniorWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.Junior);
+
 
             logger.LogInformation("Создание команд.");
             var teams = strategy.BuildTeams(teamLeads, juniors, teamLeadsWishlists, juniorWishlists).ToList();
@@ -48,18 +50,16 @@ public class HRManagerBackgroundService(
             // Создаем хакатон и сохраняем в БД
             var hackathon = new Entities.Hackathon
             {
-                // MeanSatisfactionIndex вычислит директор.
-                MeanSatisfactionIndex = 0.0,
+                MeanSatisfactionIndex = 0.0, // MeanSatisfactionIndex вычислит директор.
                 Participants = participants.ToList(),
                 Wishlists = wishlists.ToList(),
                 Teams = teams
             };
             hackathon = await hackathonRepo.CreateHackathonAsync(hackathon);
-
+            
             // Сохранение команд
             await teamRepo.AddTeamsAsync(teams);
             
-
             // Отправка данных о хакатоне в HRDirector
             await hrDirectorClient.SendHackathonDataAsync(hackathon.Id);
 
