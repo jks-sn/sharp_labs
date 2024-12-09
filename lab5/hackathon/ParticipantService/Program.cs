@@ -62,8 +62,8 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-Console.WriteLine($"Я номер {id} Жду {10 + 1000 * id} секунд...");
-await Task.Delay(10000 + 1000 * id); // 10000 миллисекунд = 10 секунд
+Console.WriteLine($"Я номер {id} Жду {10 + 2 * id} секунд...");
+await Task.Delay(10000 + 2000 * id); // 10000 миллисекунд = 10 секунд
 Console.WriteLine($"Номер {id}, Продолжаю выполнение.");
 
 // Запуск приложения

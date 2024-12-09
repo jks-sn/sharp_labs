@@ -9,15 +9,15 @@ using HRManagerService.Interfaces;
 
 namespace HRManagerService.Services;
 
-public class ParticipantService(HRManagerService hrManagerService, ILogger<ParticipantService> logger)
+public class ParticipantService(IParticipantRepository participantRepo, IWishlistRepository wishlistRepo, ILogger<ParticipantService> logger)
     : IParticipantService
 {
     public async Task AddParticipantAsync(ParticipantInputModel input)
     {
         var title = ParticipantTitleExtensions.FromString(input.Title);
         var participant = new Participant(input.Id, title, input.Name);
-        logger.LogInformation("Adding participant: Id={Id}, Title={Title}, Name={Name}", input.Id, input.Title, input.Name);
-        await hrManagerService.AddParticipantAsync(participant);
+        logger.LogWarning("Adding participant: Id={Id}, Title={Title}, Name={Name}", input.Id, input.Title, input.Name);
+        await participantRepo.AddParticipantAsync(participant);
     }
 
     public async Task AddWishlistAsync(WishlistInputModel input)
@@ -29,9 +29,9 @@ public class ParticipantService(HRManagerService hrManagerService, ILogger<Parti
             DesiredParticipants = input.DesiredParticipants
         };
 
-        logger.LogInformation("Adding wishlist for participant {ParticipantId}, {ParticipantTitle}, with {Count} desired participants",
+        logger.LogWarning("Adding wishlist for participant {ParticipantId}, {ParticipantTitle}, with {Count} desired participants",
             input.ParticipantId, input.ParticipantTitle.ToString(), input.DesiredParticipants.Count);
 
-        await hrManagerService.AddWishlistAsync(wishlist);
+        await wishlistRepo.AddWishlistAsync(wishlist);
     }
 }

@@ -13,6 +13,9 @@ public class WishlistConfiguration : IEntityTypeConfiguration<Wishlist>
     {
         builder.HasKey(w => w.Id);
         
+        builder.Property(t => t.Id)
+            .UseIdentityColumn();
+        
         builder.Property(w => w.ParticipantTitle)
             .HasConversion<string>();
         

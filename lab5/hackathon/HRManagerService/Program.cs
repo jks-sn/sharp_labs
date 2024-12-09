@@ -42,7 +42,7 @@ builder.Services.AddDbContext<HRManagerDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
     options.EnableDetailedErrors();
-}, ServiceLifetime.Transient);
+}, ServiceLifetime.Scoped);
 
 // Регистрация Refit-клиента для HRDirectorService
 var hrDirectorUri = builder.Configuration["HrDirectorUri"] ?? "http://hr_director:8083/";
@@ -50,18 +50,18 @@ builder.Services.AddRefitClient<IHRDirectorApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrDirectorUri));
 
 // Регистрируем стратегии, сервисы
-builder.Services.AddTransient<ITeamBuildingStrategy, GaleShapleyStrategy>();
+builder.Services.AddScoped<ITeamBuildingStrategy, GaleShapleyStrategy>();
 
-builder.Services.AddTransient<IParticipantRepository, ParticipantRepository>();
-builder.Services.AddTransient<IWishlistRepository, WishlistRepository>();
-builder.Services.AddTransient<ITeamRepository, TeamRepository>();
-builder.Services.AddTransient<IHackathonRepository, HackathonRepository>();
+builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
+builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<IHackathonRepository, HackathonRepository>();
 
-builder.Services.AddTransient<HRManagerService.Services.HRManagerService>();
-builder.Services.AddTransient<IParticipantService, ParticipantService>();
-builder.Services.AddTransient<IHRDirectorClient, HRDirectorClientService>();
+builder.Services.AddScoped<HRManagerService.Services.HRManagerService>();
+builder.Services.AddScoped<IParticipantService, ParticipantService>();
+builder.Services.AddScoped<IHRDirectorClient, HRDirectorClientService>();
 
-builder.Services.AddTransient<HRManagerBackgroundService>();
+builder.Services.AddHostedService<HRManagerBackgroundService>();
 
 
 // Регистрируем контроллеры

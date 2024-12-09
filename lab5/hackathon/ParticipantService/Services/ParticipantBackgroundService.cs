@@ -33,7 +33,7 @@ public class ParticipantBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("ParticipantBackgroundService запускается.");
+        _logger.LogWarning("ParticipantBackgroundService запускается.");
         try
         {
             // Отправка данных участника
@@ -45,7 +45,7 @@ public class ParticipantBackgroundService : BackgroundService
 
             await SendWishlistAsync(wishlist, stoppingToken);
 
-            _logger.LogInformation("ParticipantBackgroundService успешно отправил данные участника и Wishlist.");
+            _logger.LogWarning("ParticipantBackgroundService успешно отправил данные участника и Wishlist.");
             
             return; 
         }
@@ -65,7 +65,7 @@ public class ParticipantBackgroundService : BackgroundService
             Name = participantToSend.Name
         };
 
-        _logger.LogInformation("Отправка данных участника: {@Participant}", participantInputModel);
+        _logger.LogWarning("Отправка данных участника: {@Participant}", participantInputModel);
 
         var delay = TimeSpan.FromSeconds(_retryOptions.InitialDelaySeconds);
 
@@ -83,7 +83,7 @@ public class ParticipantBackgroundService : BackgroundService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("Данные участника успешно отправлены.");
+                    _logger.LogWarning("Данные участника успешно отправлены.");
                     return;
                 }
                 else
@@ -110,7 +110,7 @@ public class ParticipantBackgroundService : BackgroundService
                 throw new Exception("Не удалось отправить данные участника после максимального количества попыток.");
             }
 
-            _logger.LogInformation("Ожидание {Delay} перед следующей попыткой.", delay);
+            _logger.LogWarning("Ожидание {Delay} перед следующей попыткой.", delay);
             await Task.Delay(delay, stoppingToken);
             delay = TimeSpan.FromSeconds(delay.TotalSeconds * 2); // Экспоненциальная задержка
         }
@@ -125,7 +125,7 @@ public class ParticipantBackgroundService : BackgroundService
             DesiredParticipants = wishlistToSend.DesiredParticipants
         };
 
-        _logger.LogInformation("Отправка Wishlist: {@Wishlist}", wishlistInputModel);
+        _logger.LogWarning("Отправка Wishlist: {@Wishlist}", wishlistInputModel);
 
         var delay = TimeSpan.FromSeconds(_retryOptions.InitialDelaySeconds);
 
@@ -143,7 +143,7 @@ public class ParticipantBackgroundService : BackgroundService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("Wishlist успешно отправлен.");
+                    _logger.LogWarning("Wishlist успешно отправлен.");
                     return;
                 }
                 else
@@ -168,7 +168,7 @@ public class ParticipantBackgroundService : BackgroundService
                 throw new Exception("Не удалось отправить Wishlist после максимального количества попыток.");
             }
 
-            _logger.LogInformation("Ожидание {Delay} перед следующей попыткой.", delay);
+            _logger.LogWarning("Ожидание {Delay} перед следующей попыткой.", delay);
             await Task.Delay(delay, stoppingToken);
             delay = TimeSpan.FromSeconds(delay.TotalSeconds * 2); // Экспоненциальная задержка
         }

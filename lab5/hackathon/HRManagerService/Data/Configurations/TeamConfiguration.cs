@@ -12,6 +12,9 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
     {
         builder.HasKey(t => t.Id);
         
+        builder.Property(t => t.Id)
+            .ValueGeneratedOnAdd();
+        
         builder.Property(t => t.TeamLeadTitle)
             .HasConversion<string>();
 
@@ -30,7 +33,7 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
 
         builder.HasOne(t => t.Junior)
             .WithMany()
-            .HasForeignKey(t => new { t.JuniorId, t.TeamLeadTitle })
+            .HasForeignKey(t => new { t.JuniorId, t.JuniorTitle })
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

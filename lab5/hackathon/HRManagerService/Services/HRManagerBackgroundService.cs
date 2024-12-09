@@ -13,61 +13,69 @@ namespace HRManagerService.Services;
 
 public class HRManagerBackgroundService(
     ILogger<HRManagerBackgroundService> logger,
-    HRManagerService hrManagerService,
-    ITeamBuildingStrategy strategy,
-    IParticipantRepository participantRepo,
-    IWishlistRepository wishlistRepo,
-    ITeamRepository teamRepo,
-    IHackathonRepository hackathonRepo,
-    IHRDirectorClient hrDirectorClient)
+    IServiceProvider serviceProvider)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("HRManagerBackgroundService запущен.");
+        logger.LogWarning("HRManagerBackgroundService запущен.");
         try
         {
-            logger.LogInformation("Ожидание получения всех participants.");
-            await hrManagerService.WaitAllParticipantsReceivedAsync(stoppingToken);
-
-            logger.LogInformation("Ожидание получения всех wishlists.");
-            await hrManagerService.WaitAllWishlistsReceivedAsync(stoppingToken);
-
-            var participants = await participantRepo.GetAllAsync();
-            var wishlists = await wishlistRepo.GetAllAsync();
-
-            var teamLeads = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.TeamLead);
-            var juniors = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.Junior);
-
-            var teamLeadsWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.TeamLead);
-            var juniorWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.Junior);
-
-
-            logger.LogInformation("Создание команд.");
-            var teams = strategy.BuildTeams(teamLeads, juniors, teamLeadsWishlists, juniorWishlists).ToList();
-            logger.LogInformation("Команды созданы.");
-
-            // Создаем хакатон и сохраняем в БД
-            var hackathon = new Entities.Hackathon
+            using var scope = serviceProvider.CreateScope();
+            var hrManagerService = scope.ServiceProvider.GetRequiredService<HRManagerService>();
+            var strategy = scope.ServiceProvider.GetRequiredService<ITeamBuildingStrategy>();
+            var participantRepo = scope.ServiceProvider.GetRequiredService<IParticipantRepository>();
+            var wishlistRepo = scope.ServiceProvider.GetRequiredService<IWishlistRepository>();
+            var teamRepo = scope.ServiceProvider.GetRequiredService<ITeamRepository>();
+            var hackathonRepo = scope.ServiceProvider.GetRequiredService<IHackathonRepository>();
+            var hrDirectorClient = scope.ServiceProvider.GetRequiredService<IHRDirectorClient>();
+            int requiredCount = hrManagerService.GetExpectedCount();
+            logger.LogWarning("Ожидание получения всех participants и wishlists.");
+            while (!stoppingToken.IsCancellationRequested)
             {
-                MeanSatisfactionIndex = 0.0, // MeanSatisfactionIndex вычислит директор.
-                Participants = participants.ToList(),
-                Wishlists = wishlists.ToList(),
-                Teams = teams
-            };
-            hackathon = await hackathonRepo.CreateHackathonAsync(hackathon);
-            
-            // Сохранение команд
-            await teamRepo.AddTeamsAsync(teams);
-            
-            // Отправка данных о хакатоне в HRDirector
-            await hrDirectorClient.SendHackathonDataAsync(hackathon.Id);
+                var participantCount = await hrManagerService.GetParticipantCountAsync();
+                var wishlistCount = await hrManagerService.GetWishlistCountAsync();
+                if (participantCount >= requiredCount && wishlistCount >= requiredCount)
+                {
+                    logger.LogWarning("Достигнуто необходимое количество участников и вишлистов. Начинаем обработку...");
+                    
+                    var participants = await participantRepo.GetAllAsync();
+                    var wishlists = await wishlistRepo.GetAllAsync();
 
-            logger.LogInformation("Данные о хакатоне отправлены в HRDirector.");
+                    var teamLeads = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.TeamLead);
+                    var juniors = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.Junior);
+
+                    var teamLeadsWishlists =
+                        wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.TeamLead);
+                    var juniorWishlists =
+                        wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.Junior);
+
+
+                    logger.LogWarning("Создание команд.");
+                    var teams = strategy.BuildTeams(teamLeads, juniors, teamLeadsWishlists, juniorWishlists).ToList();
+                    logger.LogWarning("Команды созданы.");
+                    var hackathon = new Entities.Hackathon
+                    {
+                        MeanSatisfactionIndex = 0.0, // MeanSatisfactionIndex вычислит директор.
+                        Participants = participants.ToList(),
+                        Wishlists = wishlists.ToList(),
+                        Teams = teams
+                    };
+                    hackathon = await hackathonRepo.CreateHackathonAsync(hackathon);
+                    
+                    await hrDirectorClient.SendHackathonDataAsync(hackathon.Id);
+
+                    logger.LogWarning("Данные о хакатоне отправлены в HRDirector.");
+
+                    break;
+                }
+
+                await Task.Delay(5000, stoppingToken);
+            }
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation("HRManagerBackgroundService остановлен по запросу отмены.");
+            logger.LogWarning("HRManagerBackgroundService остановлен по запросу отмены.");
         }
         catch (Exception ex)
         {

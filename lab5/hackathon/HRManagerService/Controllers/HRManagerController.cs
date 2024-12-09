@@ -39,7 +39,7 @@ public class HRManagerController(
 
         try
         {
-            _logger.LogInformation("Добавление участника через HRManagerController: {Id}, {Title}, {Name}",
+            _logger.LogWarning("Добавление участника через HRManagerController: {Id}, {Title}, {Name}",
                 inputModel.Id, inputModel.Title, inputModel.Name);
             await participantService.AddParticipantAsync(inputModel);
             return Ok(new { Message = "Participant added." });
@@ -60,7 +60,7 @@ public class HRManagerController(
 
         try
         {
-            _logger.LogInformation(
+            _logger.LogWarning(
                 "Добавление wishlist через HRManagerController: ParticipantId={ParticipantId}, ParticipantTitle={ParticipantTitle}, Count={Count}",
                 inputModel.ParticipantId, inputModel.ParticipantTitle.ToString(), inputModel.DesiredParticipants.Count);
             await participantService.AddWishlistAsync(inputModel);

@@ -1,40 +1,52 @@
-using HRDirectorService;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Repositories;
 
-var builder = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration((hostingContext, config) =>
-    {
-        config.AddJsonFile("appsettings.json", optional: true);
-        config.AddEnvironmentVariables();
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddLogging(configure => configure.AddConsole());
+var builder = WebApplication.CreateBuilder(args);
 
-        services.AddControllers();
+// Добавляем конфигурацию из переменных окружения и файла appsettings.json
+builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-        // Configure database connection
-        var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+// Настраиваем логирование
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
-        services.AddSingleton<HRDirectorService.HRDirectorService>();
+// Настраиваем Kestrel на порт из конфигурации или по умолчанию 8083
+var port = builder.Configuration.GetValue<int>("AppPort", 8083);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(port);
+});
 
-        services.AddHostedService<HRDirectorBackgroundService>();
+// Подключение к Postgres через EF Core
+var connectionString = builder.Configuration.GetConnectionString("HRDirectorConnection");
+builder.Services.AddDbContext<HRDirectorDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.EnableDetailedErrors();
+});
 
-        services.AddHttpClient();
+// Регистрация сервисов, репозиториев
+builder.Services.AddTransient<IHackathonRepository, HackathonRepository>();
+builder.Services.AddTransient<HackathonService>();
 
-        services.AddRouting();
+// Контроллеры
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
-        services.AddEndpointsApiExplorer();
-    });
+// Создание приложения
+var app = builder.Build();
 
-var host = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HRDirectorDbContext>();
+    db.Database.Migrate();
+}
 
-host.Services.GetRequiredService<ILogger<Program>>().LogInformation("Starting HRDirectorService...");
+// Настраиваем маршрутизацию и эндпоинты
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
 
-await host.RunAsync();
+// Запускаем приложение
+await app.RunAsync();

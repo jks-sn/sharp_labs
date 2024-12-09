@@ -12,6 +12,9 @@ public class HackathonConfiguration : IEntityTypeConfiguration<Hackathon>
     {
         builder.HasKey(h => h.Id);
 
+        builder.Property(t => t.Id)
+            .UseIdentityColumn();
+        
         // MeanSatisfactionIndex по умолчанию 0.0, можно nullable сделать
         builder.Property(h => h.MeanSatisfactionIndex)
             .HasDefaultValue(0.0);

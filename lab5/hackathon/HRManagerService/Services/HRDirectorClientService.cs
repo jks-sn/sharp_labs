@@ -47,6 +47,6 @@ public class HRDirectorClientService(
         var hackathonDto = new HackathonDto(hackathon.Id, hackathon.MeanSatisfactionIndex, participantDtos, wishlistDtos, teamDtos);
         
         await hrDirectorApi.SendHackathonDataAsync(hackathonDto);
-        logger.LogInformation("Hackathon {Id} data sent to HRDirector.", hackathonId);
+        logger.LogWarning("Hackathon {Id} data sent to HRDirector.", hackathonId);
     }
 }
