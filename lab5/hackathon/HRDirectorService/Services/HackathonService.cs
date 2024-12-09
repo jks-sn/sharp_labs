@@ -1,3 +1,5 @@
+// HRDirectorService/Services/HackathonService.cs
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,14 +14,14 @@ public class HackathonService(IHackathonRepository hackathonRepo, ILogger<Hackat
 {
     public async Task ProcessHackathonAsync(HackathonDto hackathonDto)
     {
-        double meanSatisfactionIndex = CalculateMeanSatisfaction(hackathonDto);
-        
+        var meanSatisfactionIndex = CalculateMeanSatisfaction(hackathonDto);
+
         var hackathon = new Hackathon
         {
-            Id = hackathonDto.HackathonId, 
+            Id = hackathonDto.HackathonId,
             MeanSatisfactionIndex = meanSatisfactionIndex
         };
-        
+
         await hackathonRepo.AddHackathonAsync(hackathon);
         logger.LogWarning("Hackathon {HackathonId} processed. MeanSatisfactionIndex={Mean}", hackathon.Id, hackathon.MeanSatisfactionIndex);
     }
@@ -31,82 +33,48 @@ public class HackathonService(IHackathonRepository hackathonRepo, ILogger<Hackat
             logger.LogWarning("No teams found for Hackathon {HackathonId}", hackathonDto.HackathonId);
             return 0.0;
         }
-        
-        var participants = hackathonDto.Participants;
-        var wishlists = hackathonDto.Wishlists;
-        var teams = hackathonDto.Teams;
-        
-        int GetIndexInWishlist(int participantId, string participantTitle, int targetId)
-        {
-            var wishlist = wishlists.FirstOrDefault(w =>
-                w.ParticipantId == participantId && w.ParticipantTitle.Equals(participantTitle, StringComparison.OrdinalIgnoreCase));
 
-            if (wishlist == null || wishlist.DesiredParticipants.Count == 0)
+        double ComputeSatisfactionIndex(int participantId, string participantTitle, int partnerId, HackathonDto dto)
+        {
+            var wishlist = dto.Wishlists.FirstOrDefault(w =>
+                w.ParticipantId == participantId &&
+                w.ParticipantTitle.Equals(participantTitle, StringComparison.OrdinalIgnoreCase));
+
+            if (wishlist == null)
             {
-                return int.MaxValue; // Если нет вишлиста, считаем неудовлетворённым
+                throw new InvalidOperationException(
+                    $"Participant {participantId} with title {participantTitle} has no wishlist.");
             }
 
-            var idx = wishlist.DesiredParticipants.IndexOf(targetId);
-            return idx == -1 ? wishlist.DesiredParticipants.Count : idx; // Если партнера нет в списке, считаем максимальный индекс
+            var index = wishlist.DesiredParticipants.IndexOf(partnerId);
+            if (index == -1)
+            {
+                throw new InvalidOperationException(
+                    $"Partner {partnerId} not found in the wishlist of participant {participantId}.");
+            }
+
+            return 5 - index;
         }
 
-        var totalSatisfaction = 0.0;
-        var totalParticipants = 0;
+        double totalSatisfaction = 0.0;
+        int totalParticipants = 0;
 
-        foreach (var (teamLead, junior) in teams)
+        foreach (var (teamLead, junior) in hackathonDto.Teams)
         {
-            var teamLeadIndex = GetIndexInWishlist(teamLead.Id, teamLead.Title, junior.Id);
-            var teamLeadSatisfaction = 0.0;
-            if (teamLeadIndex == int.MaxValue)
+            try
             {
-                teamLeadSatisfaction = 0.0;
-            }
-            else
-            {
-                var count = wishlists.FirstOrDefault(w => w.ParticipantId == teamLead.Id && w.ParticipantTitle.Equals(teamLead.Title, StringComparison.OrdinalIgnoreCase))
-                           ?.DesiredParticipants.Count ?? 1;
-                if (count > 1)
-                {
-                    teamLeadSatisfaction = 1.0 - (teamLeadIndex / (double)(count - 1));
-                }
-                else
-                {
-                    teamLeadSatisfaction = 1.0;
-                }
-            }
+                totalSatisfaction += ComputeSatisfactionIndex(teamLead.Id, teamLead.Title, junior.Id, hackathonDto);
+                totalParticipants++;
 
-            totalSatisfaction += teamLeadSatisfaction;
-            totalParticipants++;
-
-            
-            var juniorIndex = GetIndexInWishlist(junior.Id, junior.Title, teamLead.Id);
-            var juniorSatisfaction = 0.0;
-            if (juniorIndex == int.MaxValue)
-            {
-                juniorSatisfaction = 0.0;
+                totalSatisfaction += ComputeSatisfactionIndex(junior.Id, junior.Title, teamLead.Id, hackathonDto);
+                totalParticipants++;
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                var count = wishlists.FirstOrDefault(w => w.ParticipantId == junior.Id && w.ParticipantTitle.Equals(junior.Title, StringComparison.OrdinalIgnoreCase))
-                           ?.DesiredParticipants.Count ?? 1;
-                if (count > 1)
-                {
-                    juniorSatisfaction = 1.0 - (juniorIndex / (double)(count - 1));
-                }
-                else
-                {
-                    juniorSatisfaction = 1.0;
-                }
+                logger.LogWarning(ex.Message);
             }
-
-            totalSatisfaction += juniorSatisfaction;
-            totalParticipants++;
         }
 
-        if (totalParticipants == 0)
-        {
-            return 0.0;
-        }
-        return totalSatisfaction / totalParticipants;
+        return totalParticipants > 0 ? totalSatisfaction / totalParticipants : 0.0;
     }
 }

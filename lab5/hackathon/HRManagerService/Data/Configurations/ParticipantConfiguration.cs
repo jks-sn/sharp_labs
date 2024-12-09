@@ -29,5 +29,8 @@ public class ParticipantConfiguration : IEntityTypeConfiguration<Participant>
             .WithMany(h => h.Participants)
             .HasForeignKey(p => p.HackathonId)
             .OnDelete(DeleteBehavior.SetNull); // Если хакатон удалён, участники остаются, но без ссылки
+        
+        builder.Property(p => p.HackathonId)
+            .IsRequired(false);
     }
 }
