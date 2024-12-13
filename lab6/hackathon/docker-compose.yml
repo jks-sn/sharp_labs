@@ -1,0 +1,222 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - hackathon_network
+    ports:
+      - "5432:5432"
+  
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - hackathon_network
+
+  hr_director:
+    build:
+      context: .
+      dockerfile: HRDirectorService/Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8083/health || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    networks:
+      - hackathon_network  
+
+  hr_manager:
+    build:
+      context: .
+      dockerfile: HRManagerService/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8082/api/hr_manager/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "8082:8082"
+    networks:
+      - hackathon_network
+
+  teamlead-1:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=1
+      - TITLE=TeamLead
+      - NAME=Филиппова Ульяна
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+  
+  teamlead-2:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=2
+      - TITLE=TeamLead
+      - NAME=Николаев Григорий
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-3:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=3
+      - TITLE=TeamLead
+      - NAME=Андреева Вероника
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-4:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=4
+      - TITLE=TeamLead
+      - NAME=Коротков Михаил
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  teamlead-5:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=5
+      - TITLE=TeamLead
+      - NAME=Кузнецов Александр
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-1:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=1
+      - TITLE=Junior
+      - NAME=Юдин Адам
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-2:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=2
+      - TITLE=Junior
+      - NAME=Яшина Яна
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-3:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=3
+      - TITLE=Junior
+      - NAME=Никитина Вероника
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-4:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=4
+      - TITLE=Junior
+      - NAME=Рябинин Александр
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+  junior-5:
+    build:
+      context: .
+      dockerfile: ParticipantService/Dockerfile
+    environment:
+      - ID=5
+      - TITLE=Junior
+      - NAME=Ильин Тимофей
+      - HrManagerUri=http://hr_manager:8082/
+    depends_on:
+      - hr_manager
+    networks:
+      - hackathon_network
+
+
+networks:
+  hackathon_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

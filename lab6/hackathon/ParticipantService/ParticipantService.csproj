@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-ParticipantService-f7316f31-833e-480a-aead-899613962b68</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="MassTransit" Version="8.3.3" />
+        <PackageReference Include="MassTransit.Abstractions" Version="8.3.3" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.3" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+        <PackageReference Include="RabbitMQ.Client" Version="7.0.0" />
+        <PackageReference Include="Refit" Version="8.0.0" />
+        <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+    </ItemGroup>
+
+<ItemGroup>
+    <ProjectReference Include="..\DTO\DTO.csproj" />
+    <ProjectReference Include="..\Messages\Messages.csproj" />
+</ItemGroup>
+
+<ItemGroup>
+  <None Update="Resources\Juniors5.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+  <None Update="Resources\Teamleads5.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+  <None Update="Resources\Juniors1.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+  <None Update="Resources\Teamleads1.csv">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
+<ItemGroup>
+  <Folder Include="Models\" />
+</ItemGroup>
+
+
+</Project>
