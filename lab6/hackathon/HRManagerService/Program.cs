@@ -31,8 +31,7 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<HackathonStartConsumer>();
-    x.AddConsumer<ParticipantConsumer>();
-    x.AddConsumer<WishlistConsumer>();
+    x.AddConsumer<ParticipantWithWishlistConsumer>();
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
@@ -45,8 +44,7 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint("hrmanager", e =>
         {
             e.ConfigureConsumer<HackathonStartConsumer>(ctx);
-            e.ConfigureConsumer<ParticipantConsumer>(ctx);
-            e.ConfigureConsumer<WishlistConsumer>(ctx);
+            e.ConfigureConsumer<ParticipantWithWishlistConsumer>(ctx);
         });
     });
 });
@@ -56,14 +54,13 @@ builder.Services.Configure<ConnectionOptions>(builder.Configuration.GetSection("
 builder.Services.Configure<ControllerOptions>(builder.Configuration.GetSection("ControllerOptions"));
 builder.Services.Configure<RetryOptions>(builder.Configuration.GetSection("RetryOptions"));
 
-// Подключение к Postgres через EF Core
-var connectionString = builder.Configuration.GetConnectionString("HRManagerConnection");
 NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
 builder.Services.AddDbContext<HRManagerDbContext>(options =>
 {
-    options.UseNpgsql(connectionString);
+    var cs = builder.Configuration.GetConnectionString("HRManagerConnection");
+    options.UseNpgsql(cs);
     options.EnableDetailedErrors();
-}, ServiceLifetime.Scoped);
+});
 
 // Регистрация Refit-клиента для HRDirectorService
 var hrDirectorUri = builder.Configuration["HrDirectorUri"] ?? "http://hr_director:8083/";
@@ -73,13 +70,14 @@ builder.Services.AddRefitClient<IHRDirectorApi>()
 // Регистрируем стратегии, сервисы
 builder.Services.AddScoped<ITeamBuildingStrategy, GaleShapleyStrategy>();
 
-builder.Services.AddScoped<ITeamBuildingOrchestrationService, TeamBuildingOrchestrationService>();
 builder.Services.AddScoped<IParticipantService, ParticipantService>();
 builder.Services.AddScoped<IHRDirectorClient, HRDirectorClientService>();
 
 builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+
+builder.Services.AddSingleton<TeamBuildingOrchestrationService>();
 
 // Регистрируем контроллеры
 builder.Services.AddControllers()

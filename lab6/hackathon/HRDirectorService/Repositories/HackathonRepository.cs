@@ -13,6 +13,11 @@ public class HackathonRepository(HRDirectorDbContext context) : IHackathonReposi
 {
     public async Task<Hackathon> CreateHackathonAsync(Hackathon hackathon)
     {
+        var existing = await context.Hackathons.FindAsync(hackathon.Id);
+        if (existing != null)
+        {
+            return existing;
+        }
         context.Hackathons.Add(hackathon);
         await context.SaveChangesAsync();
         return hackathon;

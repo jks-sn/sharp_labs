@@ -14,14 +14,11 @@ public class ParticipantService
     public ParticipantService(DataLoader dataLoader, IOptions<ServiceOptions> serviceOptions)
     {
         var options = serviceOptions.Value;
-
-        // Получаем данные участника из настроек
+        
         _participant = options.Participant;
-
-        // Определяем роль напарников (если Junior, то ищем TeamLead, и наоборот)
+        
         var teammateTitle = _participant.Title == ParticipantTitle.Junior ? ParticipantTitle.TeamLead : ParticipantTitle.Junior;
-
-        // Загружаем потенциальных напарников через DataLoader
+        
         _probableTeammates = dataLoader.LoadProbableTeammates(teammateTitle);
         Console.WriteLine($"I AM a {_participant.Name} and my teammate: {_probableTeammates[0].Name}");
     }

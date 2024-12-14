@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using HRManagerService.Interfaces;
+using HRManagerService.Services;
 using Messages;
 
 namespace HRManagerService.Consumers;
@@ -9,17 +10,17 @@ namespace HRManagerService.Consumers;
 [NotMapped]
 public class HackathonStartConsumer(
     ILogger<HackathonStartConsumer> logger,
-    ITeamBuildingOrchestrationService orchestration)
+    TeamBuildingOrchestrationService orchestration)
     : IConsumer<IHackathonStarted>
 {
     public Task Consume(ConsumeContext<IHackathonStarted> context)
     {
         var hackathonId = context.Message.HackathonId;
-        var expectedCount = context.Message.ExpectedCount;
+        var participantsNumber = context.Message.ParticipantsNumber;
         logger.LogInformation("Received HackathonStarted for HackathonId={HackathonId}, ExpectedCount={ExpectedCount}",
-            hackathonId, expectedCount);
+            hackathonId, participantsNumber);
         
-        orchestration.OnHackathonStart(hackathonId, expectedCount);
+        orchestration.OnHackathonStart(hackathonId, participantsNumber);
 
         return Task.CompletedTask;
     }

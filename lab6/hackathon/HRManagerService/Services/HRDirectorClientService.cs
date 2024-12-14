@@ -23,6 +23,6 @@ public class HRDirectorClientService(
         var content = new StringContent(JsonSerializer.Serialize(hackathonDto), Encoding.UTF8, "application/json");
         var response = await httpClient.PostAsync("api/hr_director/hackathon", content);
         response.EnsureSuccessStatusCode();
-        logger.LogInformation("Hackathon {Id} data sent to HRDirector", hackathonDto.HackathonId);
+        logger.LogInformation("Hackathon {ParticipantId} data sent to HRDirector", hackathonDto.HackathonId);
     }
 }

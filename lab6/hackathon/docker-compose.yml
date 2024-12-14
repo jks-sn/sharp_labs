@@ -38,6 +38,7 @@ services:
     build:
       context: .
       dockerfile: HRDirectorService/Dockerfile
+    container_name: hr_director
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8083/health || exit 1"]
       interval: 5s

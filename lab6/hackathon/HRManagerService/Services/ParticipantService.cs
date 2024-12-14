@@ -18,7 +18,7 @@ public class ParticipantService(IParticipantRepository participantRepo, IWishlis
     {
         var title = ParticipantTitleExtensions.FromString(input.Title);
         var participant = new Participant(input.Id, title, input.Name);
-        logger.LogWarning("Adding participant: HackathonId={HackathonId}, Title={Title}, Name={Name}", input.Id, input.Title, input.Name);
+        logger.LogWarning("Adding participant: HackathonId={HackathonId}, ParticipantTitle={ParticipantTitle}, ParticipantName={ParticipantName}", input.Id, input.Title, input.Name);
         await participantRepo.AddParticipantAsync(participant);
     }
 

@@ -4,6 +4,7 @@ using HRDirectorService;
 using HRDirectorService.Consumers;
 using HRDirectorService.Data;
 using HRDirectorService.Interfaces;
+using HRDirectorService.Options;
 using HRDirectorService.Repositories;
 using HRDirectorService.Services;
 using MassTransit;
@@ -27,15 +28,11 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<ParticipantConsumer>(cfg =>
+    x.AddConsumer<ParticipantWithWishlistConsumer>(cfg =>
     {
         cfg.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(5)));
     });
-    x.AddConsumer<WishlistConsumer>(cfg =>
-    {
-        cfg.UseMessageRetry(r => r.Interval(5, TimeSpan.FromSeconds(5)));
-    });
-
+    
     x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host("rabbitmq", "/", h =>
@@ -46,8 +43,7 @@ builder.Services.AddMassTransit(x =>
 
         cfg.ReceiveEndpoint("hrdirector_participants", e =>
         {
-            e.ConfigureConsumer<ParticipantConsumer>(ctx);
-            e.ConfigureConsumer<WishlistConsumer>(ctx);
+            e.ConfigureConsumer<ParticipantWithWishlistConsumer>(ctx);
         });
     });
 });
@@ -59,6 +55,8 @@ builder.Services.AddDbContext<HRDirectorDbContext>(options =>
     options.UseNpgsql(connectionString);
     options.EnableDetailedErrors();
 }, ServiceLifetime.Scoped);
+
+builder.Services.Configure<HackathonOptions>(builder.Configuration.GetSection("HackathonOptions"));
 
 builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
@@ -84,6 +82,5 @@ using (var scope = app.Services.CreateScope())
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
-
 
 await app.RunAsync();
