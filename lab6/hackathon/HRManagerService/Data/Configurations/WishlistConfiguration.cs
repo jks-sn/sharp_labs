@@ -1,6 +1,5 @@
 //HRManagerService/Data/Configurations/WishlistConfiguration.cs
 
-using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HRManagerService.Entities;
@@ -14,10 +13,7 @@ public class WishlistConfiguration : IEntityTypeConfiguration<Wishlist>
         builder.HasKey(w => w.Id);
         
         builder.Property(t => t.Id)
-            .UseIdentityColumn();
-        
-        builder.Property(w => w.ParticipantTitle)
-            .HasConversion<string>();
+            .ValueGeneratedOnAdd();
         
         builder.Property(w => w.DesiredParticipants)
             .HasColumnType("jsonb")
@@ -25,7 +21,7 @@ public class WishlistConfiguration : IEntityTypeConfiguration<Wishlist>
         
         builder.HasOne(w => w.Participant)
             .WithMany(p => p.Wishlists)
-            .HasForeignKey(w => new { w.ParticipantId, w.ParticipantTitle })
+            .HasForeignKey(w => w.ParticipantId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

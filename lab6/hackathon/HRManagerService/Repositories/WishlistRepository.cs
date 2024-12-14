@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Entities;
 using HRManagerService.Data;
 using HRManagerService.Entities;
 using HRManagerService.Interfaces;
@@ -26,7 +25,7 @@ public class WishlistRepository(HRManagerDbContext context) : IWishlistRepositor
     public async Task<int> GetWishlistCountForHackathonAsync(int hackathonId)
     {
         return await context.Wishlists
-            .Where(w => w.HackathonId == hackathonId)
+            .Where(w => w.Participant.HackathonId == hackathonId)
             .CountAsync();
     }
     
@@ -39,7 +38,7 @@ public class WishlistRepository(HRManagerDbContext context) : IWishlistRepositor
     {
         return await context.Wishlists
             .Include(w => w.Participant)
-            .Where(w => w.HackathonId == hackathonId)
+            .Where(w => w.Participant.HackathonId == hackathonId)
             .ToListAsync();
     }
 }

@@ -16,12 +16,6 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
         
         builder.Property(t => t.Id)
             .ValueGeneratedOnAdd();
-        
-        builder.Property(t => t.TeamLeadTitle)
-            .HasConversion<string>();
-
-        builder.Property(t => t.JuniorTitle)
-            .HasConversion<string>();
 
         builder.HasOne(t => t.Hackathon)
             .WithMany(h => h.Teams)
@@ -30,12 +24,12 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
         
         builder.HasOne(t => t.TeamLead)
             .WithMany()
-            .HasForeignKey(t => new { t.TeamLeadId, t.TeamLeadTitle })
+            .HasForeignKey(t => t.TeamLeadId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t => t.Junior)
+        builder.HasOne(j => j.Junior)
             .WithMany()
-            .HasForeignKey(t => new { t.JuniorId, t.JuniorTitle })
+            .HasForeignKey(j => j.JuniorId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

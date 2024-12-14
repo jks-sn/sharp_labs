@@ -7,6 +7,7 @@ namespace HRDirectorService.Entities;
 public class Hackathon
 {
     public int Id { get; set; }
+    public int HackathonId { get; set; }
     public double MeanSatisfactionIndex { get; set; }
     
     public ICollection<Participant> Participants { get; set; } = new List<Participant>();

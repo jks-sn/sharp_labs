@@ -1,6 +1,5 @@
 //HRManagerService/Program.cs
 
-using Entities;
 using HRManagerService.Clients;
 using HRManagerService.Consumers;
 using HRManagerService.Data;
@@ -9,6 +8,7 @@ using HRManagerService.Interfaces;
 using HRManagerService.Options;
 using HRManagerService.Repositories;
 using HRManagerService.Services;
+using HRManagerService.Strategies;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -68,7 +68,7 @@ builder.Services.AddRefitClient<IHRDirectorApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrDirectorUri));
 
 // Регистрируем стратегии, сервисы
-builder.Services.AddScoped<ITeamBuildingStrategy, GaleShapleyStrategy>();
+builder.Services.AddScoped<ITeamBuildingStrategy, RandomStrategy>();
 
 builder.Services.AddScoped<IParticipantService, ParticipantService>();
 builder.Services.AddScoped<IHRDirectorClient, HRDirectorClientService>();

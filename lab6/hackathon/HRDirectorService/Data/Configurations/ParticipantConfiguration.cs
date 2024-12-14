@@ -12,7 +12,12 @@ public class ParticipantConfiguration : IEntityTypeConfiguration<Entities.Partic
     {
         builder.ToTable("Participants");
         
-        builder.HasKey(p => new { p.Id, p.Title });;
+        builder.HasKey(t => t.Id);
+        
+        builder.Property(t => t.Id)
+            .ValueGeneratedOnAdd();
+        
+        builder.HasIndex(p => new { p.Id, p.Title, p.HackathonId});
         
         builder.Property(p => p.Title)
             .HasConversion<string>();
@@ -23,12 +28,12 @@ public class ParticipantConfiguration : IEntityTypeConfiguration<Entities.Partic
 
         builder.HasMany(p => p.Wishlists)
             .WithOne(w => w.Participant)
-            .HasForeignKey(w => new { w.ParticipantId, w.ParticipantTitle })
+            .HasForeignKey(w => w.ParticipantId)
             .OnDelete(DeleteBehavior.Cascade);
-
+        
         builder.HasOne(p => p.Hackathon)
             .WithMany(h => h.Participants)
             .HasForeignKey(p => p.HackathonId)
-            .OnDelete(DeleteBehavior.SetNull); 
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

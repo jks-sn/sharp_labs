@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Entities;
 using HRManagerService.Entities;
 using HRManagerService.Entities.Consts;
 

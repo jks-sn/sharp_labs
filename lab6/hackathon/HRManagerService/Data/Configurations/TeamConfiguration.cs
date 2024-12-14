@@ -1,6 +1,5 @@
 //HRManagerService/Data/Configurations/TeamConfiguration.cs
 
-using Entities;
 using HRManagerService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,20 +15,14 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
         builder.Property(t => t.Id)
             .ValueGeneratedOnAdd();
         
-        builder.Property(t => t.TeamLeadTitle)
-            .HasConversion<string>();
-
-        builder.Property(t => t.JuniorTitle)
-            .HasConversion<string>();
-        
         builder.HasOne(t => t.TeamLead)
             .WithMany()
-            .HasForeignKey(t => new { t.TeamLeadId, t.TeamLeadTitle })
+            .HasForeignKey(t => t.TeamLeadId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.Junior)
             .WithMany()
-            .HasForeignKey(t => new { t.JuniorId, t.JuniorTitle })
+            .HasForeignKey(t => t.JuniorId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

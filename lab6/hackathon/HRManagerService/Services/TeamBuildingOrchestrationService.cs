@@ -3,7 +3,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using HRManagerService.Interfaces;
 using Microsoft.Extensions.Logging;
-using Entities;
 using System.Linq;
 using Dto;
 using HRManagerService.Clients;
@@ -17,22 +16,26 @@ public class TeamBuildingOrchestrationService(
     ILogger<TeamBuildingOrchestrationService> logger)
     : ITeamBuildingOrchestrationService
 {
+    private readonly Dictionary<int, bool> _hackathonBuilt = new();
+
     private readonly Dictionary<int, int> _expectedCounts = new();
-    private readonly HashSet<int> _hackathonBuilt = new();
     
     private readonly object _sync = new();
     
     public void OnHackathonStart(int hackathonId, int expectedCount)
     {
-        _expectedCounts[hackathonId] = expectedCount;
-        logger.LogInformation("Hackathon {HackathonId} started, expecting {Count}", hackathonId, expectedCount);
+        lock (_sync)
+        {
+            _expectedCounts[hackathonId] = expectedCount;
+            _hackathonBuilt[hackathonId] = false; 
+        }
     }
 
     public void OnDataReceived(int hackathonId)
     {
         lock (_sync)
         {
-            if (_hackathonBuilt.Contains(hackathonId))
+            if (_hackathonBuilt.TryGetValue(hackathonId, out var built) && built)      
             {
                 logger.LogDebug("Hackathon {HackathonId} teams already built, skipping...", hackathonId);
                 return;
@@ -41,8 +44,7 @@ public class TeamBuildingOrchestrationService(
             if (IsReadyToBuildTeams(hackathonId))
             {
                 BuildAndSendTeams(hackathonId);
-
-                _hackathonBuilt.Add(hackathonId);
+                _hackathonBuilt[hackathonId] = true; 
             }
         }
     }
@@ -58,12 +60,11 @@ public class TeamBuildingOrchestrationService(
         }
         
         var participantCount = participantRepo.GetParticipantCountForHackathonAsync(hackathonId).Result;
-        var wishlistCount = wishlistRepo.GetWishlistCountForHackathonAsync(hackathonId).Result;
 
-        logger.LogWarning("For Hackathon {HackathonId}: Participants={P}, Wishlists={W}, Expected={E}",
-            hackathonId, participantCount, wishlistCount, expectedCount);
+        logger.LogWarning("For Hackathon {HackathonId}: Participants={P}, Expected={E}",
+            hackathonId, participantCount, expectedCount);
 
-        return participantCount >= expectedCount && wishlistCount >= expectedCount;
+        return participantCount >= expectedCount;
     }
 
     public void BuildAndSendTeams(int hackathonId)
@@ -84,7 +85,12 @@ public class TeamBuildingOrchestrationService(
         var juniors = participants.Where(p => p.Title == Entities.Consts.ParticipantTitle.Junior);
         var teamLeadsWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.TeamLead);
         var juniorWishlists = wishlists.Where(w => w.Participant.Title == Entities.Consts.ParticipantTitle.Junior);
-
+        
+        foreach (var participant in participants)
+        {
+            logger.LogInformation($"Обрабатывается участник: {participant.Name} (ID: {participant.Id})");
+        }
+        
         var teams = strategy.BuildTeams(teamLeads, juniors, teamLeadsWishlists, juniorWishlists).ToList();
 
         foreach (var team in teams)
@@ -97,8 +103,8 @@ public class TeamBuildingOrchestrationService(
         teamRepo.AddTeamsAsync(teams).Wait();
 
         var teamDtos = teams.Select(t => new TeamDto(
-            new ParticipantDto(t.TeamLead.Id, t.TeamLead.Title.ToString(), t.TeamLead.Name),
-            new ParticipantDto(t.Junior.Id, t.Junior.Title.ToString(), t.Junior.Name)
+            new ParticipantDto(t.TeamLead.ParticipantId, t.TeamLead.Title.ToString(), t.TeamLead.Name),
+            new ParticipantDto(t.Junior.ParticipantId, t.Junior.Title.ToString(), t.Junior.Name)
         )).ToList();
 
         var payload = new TeamsPayloadDto(hackathonId, teamDtos);

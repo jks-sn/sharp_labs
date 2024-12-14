@@ -30,6 +30,12 @@ public class ParticipantRepository(HRDirectorDbContext context) : IParticipantRe
         return await context.Participants.ToListAsync();
     }
     
+    public async Task<Participant> GetParticipantAsync(int participantId, ParticipantTitle participantTitle, int hackathonId)
+    {
+        return await context.Participants
+            .FirstOrDefaultAsync(p => p.ParticipantId == participantId && p.Title == participantTitle && p.HackathonId == hackathonId);
+    }
+    
     public async Task<int> GetParticipantCountForHackathonAsync(int hackathonId)
     {
         return await context.Participants

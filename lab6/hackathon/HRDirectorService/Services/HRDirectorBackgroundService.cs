@@ -23,17 +23,16 @@ public class HRDirectorBackgroundService(IBus bus, ILogger<HRDirectorBackgroundS
     {
         using var scope = serviceProvider.CreateScope();
         var hackathonRepo = scope.ServiceProvider.GetRequiredService<IHackathonRepository>();
-        int hackathonId = 1;
-        for (var i = 1; i <= _options.HackathonsNumber; i++)
+        for (var hackathonId = 1; hackathonId <= _options.HackathonsNumber; hackathonId++)
         {
             await hackathonRepo.CreateHackathonAsync(new Hackathon
             {
-                Id = hackathonId,
+                HackathonId = hackathonId,
                 MeanSatisfactionIndex = 0.0
             });
             
-            await bus.Publish<IHackathonStarted>(new { HackathonId = i, ParticipantsNumber = _options.ParticipantsNumber }, stoppingToken);
-            logger.LogWarning("Announced start of Hackathon {HackathonId}", i);
+            await bus.Publish<IHackathonStarted>(new { HackathonId = hackathonId, ParticipantsNumber = _options.ParticipantsNumber }, stoppingToken);
+            logger.LogWarning("Announced start of Hackathon {HackathonId}", hackathonId);
         }
     }
 }

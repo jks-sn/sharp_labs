@@ -1,6 +1,7 @@
 //Entities/Participant.cs
 
-using Entities;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using HRManagerService.Entities.Consts;
 
 namespace HRManagerService.Entities;
@@ -8,6 +9,7 @@ namespace HRManagerService.Entities;
 public class Participant
 {
     public int Id { get; set; }
+    public int ParticipantId { get; set; }
     public ParticipantTitle Title { get; set; }
     public string Name { get; set; }
     
@@ -18,9 +20,9 @@ public class Participant
     {
     }
 
-    public Participant(int id, ParticipantTitle title, string name)
+    public Participant(int participantId, ParticipantTitle title, string name)
     {
-        Id = id;
+        ParticipantId = participantId;
         Title = title;
         Name = name;
     }
@@ -28,13 +30,12 @@ public class Participant
     public Wishlist MakeWishlist(IEnumerable<Participant> probableTeammates)
     {
         var desiredParticipants = probableTeammates
-            .Select(e => e.Id)
+            .Select(e => e.ParticipantId)
             .OrderBy(_ => Guid.NewGuid())
             .ToArray();
         return new Wishlist
         {
-            ParticipantId = Id,
-            ParticipantTitle = Title,
+            ParticipantId = ParticipantId,
             DesiredParticipants = desiredParticipants
         };
     }

@@ -25,7 +25,7 @@ public class WishlistRepository(HRDirectorDbContext context) : IWishlistReposito
     public async Task<int> GetWishlistCountForHackathonAsync(int hackathonId)
     {
         return await context.Wishlists
-            .Where(w => w.HackathonId == hackathonId)
+            .Where(w => w.Participant.HackathonId == hackathonId)
             .CountAsync();
     }
     
@@ -38,7 +38,7 @@ public class WishlistRepository(HRDirectorDbContext context) : IWishlistReposito
     {
         return await context.Wishlists
             .Include(w => w.Participant)
-            .Where(w => w.HackathonId == hackathonId)
+            .Where(w => w.Participant.HackathonId == hackathonId)
             .ToListAsync();
     }
 }

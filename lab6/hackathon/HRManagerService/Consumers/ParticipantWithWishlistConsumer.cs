@@ -23,12 +23,10 @@ public class ParticipantWithWishlistConsumer(
     public async Task Consume(ConsumeContext<IParticipantWithWishlist> context)
     {
         var msg = context.Message;
-        logger.LogInformation("HRManager received participant+wishlist: Id={Id}, Title={Title}, HackathonId={HackathonId}", 
-                               msg.ParticipantId, msg.ParticipantTitle, msg.HackathonId);
         
         var participant = new Participant                                                                       
         {                                                                                                       
-            Id = msg.ParticipantId,                                                                             
+            ParticipantId = msg.ParticipantId,                                                                             
             Title = ParticipantTitleExtensions.FromString(msg.ParticipantTitle),                                
             Name = msg.ParticipantName,                                                                         
             HackathonId = msg.HackathonId                                                                       
@@ -38,14 +36,9 @@ public class ParticipantWithWishlistConsumer(
         var wishlist = new Wishlist
         {
             ParticipantId = participant.Id,
-            ParticipantTitle = participant.Title,
             DesiredParticipants = msg.DesiredParticipants,
-            HackathonId = msg.HackathonId
         };
         await wishlistRepo.AddWishlistAsync(wishlist);
-        
-        logger.LogInformation("ParticipantWithWishlist saved: participantId={Id}, wishlistCount={Count}", 
-                               msg.ParticipantId, msg.DesiredParticipants.Length);
         
         orchestration.OnDataReceived(msg.HackathonId); 
     }

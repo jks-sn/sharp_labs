@@ -17,21 +17,13 @@ public class WishlistConfiguration : IEntityTypeConfiguration<Wishlist>
         builder.Property(t => t.Id)
             .UseIdentityColumn();
         
-        builder.Property(w => w.ParticipantTitle)
-            .HasConversion<string>();
-        
         builder.Property(w => w.DesiredParticipants)
             .HasColumnType("jsonb")
             .IsRequired();
         
         builder.HasOne(w => w.Participant)
             .WithMany(p => p.Wishlists)
-            .HasForeignKey(w => new { w.ParticipantId, w.ParticipantTitle })
+            .HasForeignKey(w => w.ParticipantId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(w => w.Hackathon)
-            .WithMany(h => h.Wishlists)
-            .HasForeignKey(w => w.HackathonId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 }

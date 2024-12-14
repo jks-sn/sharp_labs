@@ -10,23 +10,19 @@ public class HackathonConfiguration : IEntityTypeConfiguration<Entities.Hackatho
 {
     public void Configure(EntityTypeBuilder<Entities.Hackathon> builder)
     {
+        builder.ToTable("Hackathons");
         
         builder.HasKey(h => h.Id);
 
         builder.Property(t => t.Id)
-            .UseIdentityColumn();
+            .ValueGeneratedOnAdd();
         
         builder.Property(h => h.MeanSatisfactionIndex)
             .HasDefaultValue(0.0);
-
+        
         builder.HasMany(h => h.Participants)
             .WithOne(p => p.Hackathon)
             .HasForeignKey(p => p.HackathonId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
-        builder.HasMany(h => h.Wishlists)
-            .WithOne(w => w.Hackathon)
-            .HasForeignKey(w => w.HackathonId)
             .OnDelete(DeleteBehavior.SetNull);
         
         builder.HasMany(h => h.Teams)

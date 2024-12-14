@@ -1,7 +1,6 @@
 //HRDirectorService/Repositories/HackathonRepository.cs
 
 using System.Threading.Tasks;
-using Entities;
 using HRDirectorService.Data;
 using HRDirectorService.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +12,6 @@ public class HackathonRepository(HRDirectorDbContext context) : IHackathonReposi
 {
     public async Task<Hackathon> CreateHackathonAsync(Hackathon hackathon)
     {
-        var existing = await context.Hackathons.FindAsync(hackathon.Id);
-        if (existing != null)
-        {
-            return existing;
-        }
         context.Hackathons.Add(hackathon);
         await context.SaveChangesAsync();
         return hackathon;
@@ -33,12 +27,17 @@ public class HackathonRepository(HRDirectorDbContext context) : IHackathonReposi
             .ThenInclude(t => t.TeamLead)
             .Include(h => h.Teams)
             .ThenInclude(t => t.Junior)
-            .FirstOrDefaultAsync(h => h.Id == hackathonId);
+            .FirstOrDefaultAsync(h => h.HackathonId == hackathonId);
     }
 
     public async Task UpdateHackathonAsync(Hackathon hackathon)
     {
         context.Hackathons.Update(hackathon);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<Hackathon> GetIdByHackathonIdAsync(int hackathonId)
+    {
+        return await context.Hackathons.FirstOrDefaultAsync(h => h.HackathonId == hackathonId);
     }
 }

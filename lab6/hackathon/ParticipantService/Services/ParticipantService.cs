@@ -20,7 +20,6 @@ public class ParticipantService
         var teammateTitle = _participant.Title == ParticipantTitle.Junior ? ParticipantTitle.TeamLead : ParticipantTitle.Junior;
         
         _probableTeammates = dataLoader.LoadProbableTeammates(teammateTitle);
-        Console.WriteLine($"I AM a {_participant.Name} and my teammate: {_probableTeammates[0].Name}");
     }
 
     public Participant GetParticipant()

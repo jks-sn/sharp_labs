@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dto;
-using Entities;
 using HRManagerService.Clients;
 using HRManagerService.Data;
 using HRManagerService.Interfaces;

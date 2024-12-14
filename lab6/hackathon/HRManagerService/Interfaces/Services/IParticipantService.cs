@@ -2,7 +2,6 @@
 
 using System.Threading.Tasks;
 using Dto;
-using Entities;
 
 namespace HRManagerService.Interfaces;
 

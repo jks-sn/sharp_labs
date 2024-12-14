@@ -1,7 +1,6 @@
 //HRManagerService/Services/ParticipantService.cs
 
 using System.Threading.Tasks;
-using Entities;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using Dto;
@@ -27,7 +26,6 @@ public class ParticipantService(IParticipantRepository participantRepo, IWishlis
         var wishlist = new Wishlist
         {
             ParticipantId = input.ParticipantId,
-            ParticipantTitle = ParticipantTitleExtensions.FromString(input.ParticipantTitle),
             DesiredParticipants = input.DesiredParticipants
         };
 

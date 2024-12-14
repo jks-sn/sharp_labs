@@ -1,6 +1,5 @@
 //HRManagerService/Interfaces/ITeamBuildingStrategy.cs
 
-using Entities;
 using HRManagerService.Entities;
 
 namespace HRManagerService.Interface;

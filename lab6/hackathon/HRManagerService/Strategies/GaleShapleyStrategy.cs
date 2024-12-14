@@ -1,190 +1,185 @@
-// Entities/GaleShapleyStrategy.cs
+// HRManagerService/Strategies/GaleShapleyStrategy.cs
 
 using HRManagerService.Entities;
 using HRManagerService.Interface;
+using Microsoft.Extensions.Logging;
 
-namespace Entities;
+namespace HRManagerService.Strategies;
+
 public class GaleShapleyStrategy(ILogger<GaleShapleyStrategy> logger) : ITeamBuildingStrategy
 {
-
     public IEnumerable<Team> BuildTeams(
-            IEnumerable<Participant> teamLeads,
-            IEnumerable<Participant> juniors,
-            IEnumerable<Wishlist> teamLeadsWishlists,
-            IEnumerable<Wishlist> juniorsWishlists)
+        IEnumerable<Participant> teamLeads,
+        IEnumerable<Participant> juniors,
+        IEnumerable<Wishlist> teamLeadsWishlists,
+        IEnumerable<Wishlist> juniorsWishlists)
+    {
+        logger.LogWarning("Начало процесса создания команд по алгоритму Gale-Shapley (исправленная версия).");
+
+        // Превращаем в списки, чтобы обращаться по индексам
+        var teamLeadsList = teamLeads.ToList();
+        var juniorsList = juniors.ToList();
+
+        // Словари предпочтений для TeamLead
+        var teamLeadPreferences = new Dictionary<int, Queue<int>>();
+        foreach (var w in teamLeadsWishlists)
         {
-            logger.LogWarning("Начало процесса создания команд по алгоритму Gale-Shapley.");
-            var teamLeadsList = teamLeads.ToList();
-            var juniorsList = juniors.ToList();
-            
-            if (!teamLeadsList.Any())
+            // w.ParticipantId — ParticipantId тимлида, w.DesiredParticipants — список ParticipantId джунов
+            teamLeadPreferences[w.ParticipantId] = new Queue<int>(w.DesiredParticipants);
+        }
+        // Для тимлидов, у которых нет wishlist, заводим пустую очередь
+        foreach (var tl in teamLeadsList)
+        {
+            if (!teamLeadPreferences.ContainsKey(tl.ParticipantId))
             {
-                return Enumerable.Empty<Team>();
+                teamLeadPreferences[tl.ParticipantId] = new Queue<int>();
             }
-            
-            if (!juniorsList.Any())
-            {
-                return Enumerable.Empty<Team>();
-            }
-            
-            
-            var teamLeadPreferences = new Dictionary<int, List<int>>();
-            foreach (var w in teamLeadsWishlists)
-            {
-                teamLeadPreferences[w.ParticipantId] = w.DesiredParticipants.ToList();
-            }
+        }
 
-            // Для тимлидов без явных предпочтений создаём пустые списки
-            foreach (var tl in teamLeadsList)
+        // Словари предпочтений для Junior
+        var juniorPreferences = new Dictionary<int, List<int>>();
+        foreach (var w in juniorsWishlists)
+        {
+            juniorPreferences[w.ParticipantId] = w.DesiredParticipants.ToList();
+        }
+        // Для джунов без wishlist — пустой список
+        foreach (var j in juniorsList)
+        {
+            if (!juniorPreferences.ContainsKey(j.ParticipantId))
             {
-                if (!teamLeadPreferences.ContainsKey(tl.Id))
+                juniorPreferences[j.ParticipantId] = new List<int>();
+            }
+        }
+
+        // Сопоставление: juniorId -> teamLeadId
+        var engagements = new Dictionary<int, int>();
+
+        // Множество "свободных" тимлидов, которые ещё не состоят в паре
+        var freeTeamLeads = new HashSet<int>(teamLeadsList.Select(tl => tl.ParticipantId));
+
+        // Пока существует свободный тимлид, у которого есть кандидаты
+        while (freeTeamLeads.Any())
+        {
+            bool atLeastOneProposal = false;
+
+            // Копируем коллекцию свободных тимлидов, чтобы итерироваться по ней
+            var freeTeamLeadsSnapshot = freeTeamLeads.ToList();
+
+            foreach (var teamLeadId in freeTeamLeadsSnapshot)
+            {
+                // Если у этого тимлида закончились джуны в списке — он остаётся "свободен", но предложить не может
+                if (teamLeadPreferences[teamLeadId].Count == 0)
                 {
-                    teamLeadPreferences[tl.Id] = new List<int>();
+                    logger.LogDebug($"Тимлид {teamLeadId} исчерпал все предложения и останется без пары.");
+                    // Удаляем его из freeTeamLeads
+                    freeTeamLeads.Remove(teamLeadId);
+                    continue;
                 }
-            }
 
-            // Словари предпочтений джунов
-            var juniorPreferences = new Dictionary<int, List<int>>();
-            foreach (var w in juniorsWishlists)
-            {
-                juniorPreferences[w.ParticipantId] = w.DesiredParticipants.ToList();
-            }
+                // Тимлид делает предложение первому в очереди джуну
+                var juniorId = teamLeadPreferences[teamLeadId].Dequeue();
+                atLeastOneProposal = true;
+                logger.LogDebug($"Тимлид {teamLeadId} предлагает джуну {juniorId}.");
 
-            // Для джунов без явных предпочтений создаём пустые списки
-            foreach (var j in juniorsList)
-            {
-                if (!juniorPreferences.ContainsKey(j.Id))
+                // Проверяем, свободен ли джун
+                if (!engagements.ContainsKey(juniorId))
                 {
-                    juniorPreferences[j.Id] = new List<int>();
+                    // Джун был свободен — соглашение
+                    engagements[juniorId] = teamLeadId;
+                    // Тимлид становится занят
+                    freeTeamLeads.Remove(teamLeadId);
+                    logger.LogDebug($"Джун {juniorId} был свободен, теперь образует пару с тимлидом {teamLeadId}.");
                 }
-            }
-
-            // Инициализация очередей предложений тимлидов
-            var teamLeadProposals = teamLeadsList.ToDictionary(
-                tl => tl.Id,
-                tl => new Queue<int>(teamLeadPreferences[tl.Id]));
-            
-            var engagements = new Dictionary<int, int>();
-            
-            // Пока есть свободные тимлиды, у которых остались джуны для предложения
-            // Цикл завершается, когда тимлидам некому предлагать
-            while (teamLeadProposals.Any(kvp => kvp.Value.Count > 0 && !engagements.ContainsValue(kvp.Key)))
-            {
-                bool madeProposal = false;
-
-                foreach (var teamLead in teamLeadsList)
+                else
                 {
-                    // Пропускаем, если уже состоят в паре
-                    if (engagements.ContainsValue(teamLead.Id))
+                    var currentTeamLeadId = engagements[juniorId];
+                    // Проверяем, предпочитает ли джун нового тимлида
+                    if (JuniorPrefersNewOverCurrent(juniorPreferences[juniorId], teamLeadId, currentTeamLeadId))
                     {
-                        continue;
-                    }
-
-                    var proposals = teamLeadProposals[teamLead.Id];
-                    if (proposals.Count == 0)
-                    {
-                        continue; // У этого тимлида не осталось кандидатов
-                    }
-
-                // Тимлид делает предложение джуну
-                    var juniorId = proposals.Dequeue();
-                    madeProposal = true;
-                    
-                    if (!engagements.ContainsKey(juniorId))
-                    {
-                        // Джун свободен - соглашается
-                        engagements[juniorId] = teamLead.Id;
+                        // Джун переходит к новому тимлиду
+                        engagements[juniorId] = teamLeadId;
+                        // Новый тимлид занят
+                        freeTeamLeads.Remove(teamLeadId);
+                        // Старый тимлид становится свободным
+                        freeTeamLeads.Add(currentTeamLeadId);
+                        logger.LogDebug($"Джун {juniorId} переключился на тимлида {teamLeadId}. Тимлид {currentTeamLeadId} снова свободен.");
                     }
                     else
                     {
-                        var currentTeamLeadId = engagements[juniorId];
-                        // Проверяем предпочитает ли джун нового тимлида
-                        if (JuniorPrefersNewOverCurrent(juniorPreferences[juniorId], teamLead.Id, currentTeamLeadId))
-                        {
-                            // Джун переключается на нового тимлида
-                            engagements[juniorId] = teamLead.Id;
-                            // Предыдущий тимлид стал свободен, но он снова попробует в следующих итерациях
-                        }
-                        // Иначе джун остаётся с текущим тимлидом, а новый будет пытаться еще
+                        // Джун остаётся с текущим тимлидом, а teamLeadId остаётся свободным, но он уже вытянул этого джуна из очереди
+                        logger.LogDebug($"Джун {juniorId} остался с текущим тимлидом {currentTeamLeadId}, тимлид {teamLeadId} продолжит искать других.");
                     }
                 }
+            }
 
-                // Если ни одного предложения не было сделано за весь проход – выходим из цикла
-                // Это предохраняет от потенциального зависания
-                if (!madeProposal)
-                {
-                    break;
-                }
-            }
-            
-            // Формируем команды
-            var teams = engagements.Select(e =>
+            // Если ни одного предложения не было сделано в этом цикле — выходим
+            if (!atLeastOneProposal)
             {
-                var junior = juniorsList.FirstOrDefault(j => j.Id == e.Key);
-                var teamLead = teamLeadsList.FirstOrDefault(tl => tl.Id == e.Value);
-                if (junior == null || teamLead == null)
-                {
-                    return null;
-                }
-                var team = new Team(teamLead, junior);
-                return team;
-            })
-            .Where(t => t != null)
-            .ToList();
-            
-            foreach (var team in teams)
-            {
-                Console.WriteLine($"Сделали Команды: HackathonId={team.Id}, HackathonId={team.HackathonId}, " +
-                                  $"TeamLeadId={team.TeamLeadId}, JuniorId={team.JuniorId}");
+                logger.LogWarning("Ни одного предложения не было сделано, завершаем алгоритм досрочно.");
+                break;
             }
-            
-            logger.LogWarning($"Всего создано {teams.Count} команд.");
-            
-            return teams;
         }
 
-        private bool JuniorPrefersNewOverCurrent(List<int> juniorPreferenceList, int newTeamLeadId, int currentTeamLeadId)
+        // Формируем списки TeamLead—Junior
+        var teams = engagements.Select(e =>
         {
-            // Если у джуна нет предпочтений (пустой список), оставим всё как есть
-            if (juniorPreferenceList.Count == 0)
-            {
-                // Нет предпочтений – предпочитаем статус-кво
-                logger.LogWarning($"Джун предпочитает статус-кво, так как нет предпочтений.");
-                return false;
-            }
+            var junior = juniorsList.FirstOrDefault(j => j.ParticipantId == e.Key);
+            var teamLead = teamLeadsList.FirstOrDefault(tl => tl.ParticipantId == e.Value);
+            if (junior == null || teamLead == null) return null;
+            return new Team(teamLead, junior);
+        })
+        .Where(t => t != null)
+        .ToList();
 
-            int newIndex = juniorPreferenceList.IndexOf(newTeamLeadId);
-            int currentIndex = juniorPreferenceList.IndexOf(currentTeamLeadId);
-
-            // Случаи, когда того или иного в списке нет:
-            // - Оба не в списке: оставляем текущего
-            if (newIndex < 0 && currentIndex < 0)
-            {
-                logger.LogWarning($"Джун не имеет предпочтений ни для тимлида {newTeamLeadId}, ни для тимлида {currentTeamLeadId}.");
-                return false;
-            }
-
-            // - Новый не в списке, а текущий в списке: оставляем текущего
-            if (newIndex < 0 && currentIndex >= 0)
-            {
-                logger.LogWarning($"Джун предпочитает текущего тимлида {currentTeamLeadId}, так как новый тимлид {newTeamLeadId} не в списке предпочтений.");
-                return false;
-            }
-
-            // - Новый в списке, текущий нет: предпочитаем нового
-            if (newIndex >= 0 && currentIndex < 0)
-            {
-                logger.LogWarning($"Джун предпочитает нового тимлида {newTeamLeadId}, так как текущий тимлид {currentTeamLeadId} не в списке предпочтений.");
-                return true;
-            }
-
-            // Оба в списке – сравниваем индексы
-            bool prefersNew = newIndex < currentIndex;
-            if (prefersNew)
-                logger.LogWarning($"Джун предпочитает нового тимлида {newTeamLeadId} текущему тимлиду {currentTeamLeadId}.");
-            else
-                logger.LogWarning($"Джун предпочитает текущего тимлида {currentTeamLeadId} новому тимлиду {newTeamLeadId}.");
-
-            return prefersNew;
+        foreach (var team in teams)
+        {
+            Console.WriteLine($"Сделали Команды: HackathonId={team.HackathonId}, " +
+                              $"TeamLeadId={team.TeamLead.ParticipantId}, JuniorId={team.Junior.ParticipantId}");
         }
+
+        logger.LogWarning($"Всего создано {teams.Count} команд.");
+
+        return teams;
+    }
+
+    private bool JuniorPrefersNewOverCurrent(List<int> juniorPreferenceList, int newTeamLeadId, int currentTeamLeadId)
+    {
+        // Если у джуна нет предпочтений вообще
+        if (juniorPreferenceList == null || juniorPreferenceList.Count == 0)
+        {
+            logger.LogWarning("Джун не имеет предпочтений, оставляем статус-кво.");
+            return false;
+        }
+
+        int newIndex = juniorPreferenceList.IndexOf(newTeamLeadId);
+        int currentIndex = juniorPreferenceList.IndexOf(currentTeamLeadId);
+
+        // Если оба не в списке - оставляем текущего
+        if (newIndex == -1 && currentIndex == -1)
+        {
+            logger.LogWarning($"Джун не имеет в списке ни {newTeamLeadId}, ни {currentTeamLeadId}, остаётся со старым.");
+            return false;
+        }
+        // Новый не в списке, текущий в списке
+        if (newIndex == -1 && currentIndex >= 0)
+        {
+            logger.LogWarning($"Джун предпочитает текущего тимлида {currentTeamLeadId} (нового {newTeamLeadId} нет в списке).");
+            return false;
+        }
+        // Новый в списке, а текущий нет
+        if (newIndex >= 0 && currentIndex == -1)
+        {
+            logger.LogWarning($"Джун предпочитает нового тимлида {newTeamLeadId}, текущий {currentTeamLeadId} не в списке.");
+            return true;
+        }
+
+        // Если оба в списке — сравниваем индекс (чем меньше индекс, тем выше приоритет)
+        bool prefersNew = (newIndex < currentIndex);
+        if (prefersNew)
+            logger.LogWarning($"Джун предпочитает нового тимлида {newTeamLeadId} текущему {currentTeamLeadId}.");
+        else
+            logger.LogWarning($"Джун предпочитает текущего тимлида {currentTeamLeadId} новому {newTeamLeadId}.");
+
+        return prefersNew;
+    }
 }
