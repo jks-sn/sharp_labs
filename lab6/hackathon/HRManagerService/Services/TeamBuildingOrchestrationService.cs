@@ -12,7 +12,11 @@ namespace HRManagerService.Services;
 
 [NotMapped]
 public class TeamBuildingOrchestrationService(
-    IServiceProvider serviceProvider,
+    IHRDirectorApi hrDirectorApi,
+    IParticipantRepository participantRepo,
+    IWishlistRepository wishlistRepo,
+    ITeamRepository teamRepo,
+    ITeamBuildingStrategy strategy,
     ILogger<TeamBuildingOrchestrationService> logger)
     : ITeamBuildingOrchestrationService
 {
@@ -51,9 +55,6 @@ public class TeamBuildingOrchestrationService(
 
     public bool IsReadyToBuildTeams(int hackathonId)
     {
-        using var scope = serviceProvider.CreateScope();
-        var participantRepo = scope.ServiceProvider.GetRequiredService<IParticipantRepository>();
-        var wishlistRepo = scope.ServiceProvider.GetRequiredService<IWishlistRepository>();
         if (!_expectedCounts.TryGetValue(hackathonId, out var expectedCount))
         {
             return false;
@@ -69,13 +70,6 @@ public class TeamBuildingOrchestrationService(
 
     public void BuildAndSendTeams(int hackathonId)
     {
-        using var scope = serviceProvider.CreateScope();
-        var participantRepo = scope.ServiceProvider.GetRequiredService<IParticipantRepository>();
-        var wishlistRepo = scope.ServiceProvider.GetRequiredService<IWishlistRepository>();
-        var teamRepo = scope.ServiceProvider.GetRequiredService<ITeamRepository>();
-        var hrDirectorApi = scope.ServiceProvider.GetRequiredService<IHRDirectorApi>();
-        var strategy = scope.ServiceProvider.GetRequiredService<ITeamBuildingStrategy>();
-        
         logger.LogWarning("Building teams for Hackathon {HackathonId}", hackathonId);
 
         var participants = participantRepo.GetParticipantsForHackathonAsync(hackathonId).Result;
