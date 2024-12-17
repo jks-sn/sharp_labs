@@ -1,10 +1,10 @@
 //HRManagerService/Data/HRManagerDbContextFactory.cs
 
-using HRManagerService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Npgsql;
 
+namespace HRManagerService.Data;
 public class HRManagerDbContextFactory : IDesignTimeDbContextFactory<HRManagerDbContext>
 {
     public HRManagerDbContext CreateDbContext(string[] args)
