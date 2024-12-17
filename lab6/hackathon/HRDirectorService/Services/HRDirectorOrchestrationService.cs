@@ -64,7 +64,11 @@ public class HRDirectorOrchestrationService(
         logger.LogInformation("Added {Count} teams to HackathonId={HackathonId}", teams.Count, hackathon.Id);
         
         
-        var meanSatisfaction = await CalculateMeanSatisfactionAsync(hackathon.Id);
+        var wishlists = await wishlistRepo.GetWishlistsForHackathonAsync(hackathon.Id);
+        var teamLeadsWishlists = wishlists.Where(w => participants.Any(p => p.Id == w.ParticipantId && p.Title == ParticipantTitle.TeamLead));
+        var juniorsWishlists = wishlists.Where(w => participants.Any(p => p.Id == w.ParticipantId && p.Title == ParticipantTitle.Junior));
+
+        var meanSatisfaction = CalculateHarmonicMean(teams, teamLeadsWishlists, juniorsWishlists);
         hackathon.MeanSatisfactionIndex = meanSatisfaction;
 
         await hackathonRepo.UpdateHackathonAsync(hackathon);
@@ -72,51 +76,63 @@ public class HRDirectorOrchestrationService(
         logger.LogInformation("Hackathon {HackathonId} MeanSatisfaction={Mean}", hackathon.Id, meanSatisfaction);
     }
 
-    private async Task<double> CalculateMeanSatisfactionAsync(int hackathonId)
+    private static double CalculateHarmonicMean(
+        IEnumerable<Team> teams,
+        IEnumerable<Wishlist> teamLeadsWishlists,
+        IEnumerable<Wishlist> juniorsWishlists)
     {
-        // Логика из вашего HackathonService
-        var participants = await participantRepo.GetParticipantsForHackathonAsync(hackathonId);
-        var wishlists = await wishlistRepo.GetWishlistsForHackathonAsync(hackathonId);
-        var teams = await teamRepo.GetTeamsForHackathonAsync(hackathonId);
+        var satisfactionIndices = CalculateSatisfactionIndices(teams, teamLeadsWishlists, juniorsWishlists);
 
-        if (!teams.Any())
-            return 0.0;
-
-        double total = 0.0;
-        int count = 0;
-
-        foreach (var team in teams)
+        int n = satisfactionIndices.Count;
+        if (n == 0)
         {
-            var teamLead = participants.FirstOrDefault(p => p.Id == team.TeamLeadId);
-            var junior = participants.FirstOrDefault(p => p.Id == team.JuniorId);
+            return 0.0;
+        }
 
-            if (teamLead == null || junior == null)
+        double sumOfReciprocals = 0;
+
+        foreach (var index in satisfactionIndices)
+        {
+            if (index > 0)
             {
-                logger.LogWarning("TeamLead or Junior not found for TeamId={TeamId}", team.Id);
-                continue;
-            }
-
-            var teamLeadWishlist = wishlists.FirstOrDefault(w => w.ParticipantId == teamLead.Id);
-            var juniorWishlist = wishlists.FirstOrDefault(w => w.ParticipantId == junior.Id);
-
-            if (teamLeadWishlist != null && juniorWishlist != null)
-            {
-                var leadIndex = Array.IndexOf(teamLeadWishlist.DesiredParticipants, junior.Id);   
-                var juniorIndex = Array.IndexOf(juniorWishlist.DesiredParticipants, teamLead.Id);
-
-                if (leadIndex >= 0)
-                {
-                    total += (5 - leadIndex);
-                    count++;
-                }
-                if (juniorIndex >= 0)
-                {
-                    total += (5 - juniorIndex);
-                    count++;
-                }
+                sumOfReciprocals += 1.0 / index;
             }
         }
 
-        return (count == 0) ? 0.0 : total / count;
+        return sumOfReciprocals > 0 ? n / sumOfReciprocals : 0.0;
+    }
+
+    private static List<int> CalculateSatisfactionIndices(
+        IEnumerable<Team> teams,
+        IEnumerable<Wishlist> teamLeadsWishlists,
+        IEnumerable<Wishlist> juniorsWishlists)
+    {
+        var satisfactionIndices = new List<int>();
+
+        foreach (var team in teams)
+        {
+            var teamLeadWishlist = teamLeadsWishlists.FirstOrDefault(w => w.ParticipantId == team.TeamLeadId)?.DesiredParticipants;
+            var juniorWishlist = juniorsWishlists.FirstOrDefault(w => w.ParticipantId == team.JuniorId)?.DesiredParticipants;
+
+            if (teamLeadWishlist != null)
+            {
+                int teamLeadSatisfaction = GetSatisfactionScore(teamLeadWishlist, team.JuniorId);
+                satisfactionIndices.Add(teamLeadSatisfaction);
+            }
+
+            if (juniorWishlist != null)
+            {
+                int juniorSatisfaction = GetSatisfactionScore(juniorWishlist, team.TeamLeadId);
+                satisfactionIndices.Add(juniorSatisfaction);
+            }
+        }
+
+        return satisfactionIndices;
+    }
+
+    private static int GetSatisfactionScore(int[] wishlist, int assignedPartner)
+    {
+        int position = Array.IndexOf(wishlist, assignedPartner);
+        return position >= 0 ? wishlist.Length - position : 0;
     }
 }
