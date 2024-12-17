@@ -68,7 +68,7 @@ builder.Services.AddRefitClient<IHRDirectorApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(hrDirectorUri));
 
 // Регистрируем стратегии, сервисы
-builder.Services.AddScoped<ITeamBuildingStrategy, RandomStrategy>();
+builder.Services.AddScoped<ITeamBuildingStrategy, HungarianOptimizedStrategy>();
 
 builder.Services.AddScoped<IParticipantService, ParticipantService>();
 builder.Services.AddScoped<IHRDirectorClient, HRDirectorClientService>();
