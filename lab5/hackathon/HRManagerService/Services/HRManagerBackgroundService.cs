@@ -13,7 +13,13 @@ namespace HRManagerService.Services;
 
 public class HRManagerBackgroundService(
     ILogger<HRManagerBackgroundService> logger,
-    IServiceProvider serviceProvider)
+    HRManagerService hrManagerService,
+    IHRDirectorClient hrDirectorClient,
+    IParticipantRepository participantRepo,
+    IWishlistRepository wishlistRepo,
+    ITeamBuildingStrategy strategy,
+    IHackathonRepository hackathonRepo
+    )
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,14 +27,6 @@ public class HRManagerBackgroundService(
         logger.LogWarning("HRManagerBackgroundService запущен.");
         try
         {
-            using var scope = serviceProvider.CreateScope();
-            var hrManagerService = scope.ServiceProvider.GetRequiredService<HRManagerService>();
-            var strategy = scope.ServiceProvider.GetRequiredService<ITeamBuildingStrategy>();
-            var participantRepo = scope.ServiceProvider.GetRequiredService<IParticipantRepository>();
-            var wishlistRepo = scope.ServiceProvider.GetRequiredService<IWishlistRepository>();
-            var teamRepo = scope.ServiceProvider.GetRequiredService<ITeamRepository>();
-            var hackathonRepo = scope.ServiceProvider.GetRequiredService<IHackathonRepository>();
-            var hrDirectorClient = scope.ServiceProvider.GetRequiredService<IHRDirectorClient>();
             int requiredCount = hrManagerService.GetExpectedCount();
             logger.LogWarning("Ожидание получения всех participants и wishlists.");
             while (!stoppingToken.IsCancellationRequested)
