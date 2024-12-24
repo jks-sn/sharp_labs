@@ -41,10 +41,10 @@ public class MathUtils
         {
             try
             {
-                totalSatisfaction += ComputeSatisfactionIndex(teamLead.Id, teamLead.Title, junior.Id, hackathonDto);
+                totalSatisfaction += ComputeSatisfactionIndex(teamLead.ParticipantId, teamLead.Title, junior.ParticipantId, hackathonDto);
                 totalParticipants++;
 
-                totalSatisfaction += ComputeSatisfactionIndex(junior.Id, junior.Title, teamLead.Id, hackathonDto);
+                totalSatisfaction += ComputeSatisfactionIndex(junior.ParticipantId, junior.Title, teamLead.ParticipantId, hackathonDto);
                 totalParticipants++;
             }
             catch (InvalidOperationException ex)

@@ -16,13 +16,11 @@ using Hackathon = HRDirectorService.Entities.Hackathon;
 namespace HRDirectorService;
 
 [NotMapped]
-public class HRDirectorBackgroundService(IBus bus, ILogger<HRDirectorBackgroundService> logger,  IServiceProvider serviceProvider, IOptions<HackathonOptions> options) : BackgroundService
+public class HRDirectorBackgroundService(IBus bus, ILogger<HRDirectorBackgroundService> logger, IHackathonRepository hackathonRepo, IOptions<HackathonOptions> options) : BackgroundService
 {
     private readonly HackathonOptions _options = options.Value;
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = serviceProvider.CreateScope();
-        var hackathonRepo = scope.ServiceProvider.GetRequiredService<IHackathonRepository>();
         for (var hackathonId = 1; hackathonId <= _options.HackathonsNumber; hackathonId++)
         {
             await hackathonRepo.CreateHackathonAsync(new Hackathon

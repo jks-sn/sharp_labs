@@ -28,47 +28,75 @@ public class HRDirectorOrchestrationService(
     public async Task ProcessTeamsAsync(TeamsPayloadDto payload)
     {
         var hackathon = await hackathonRepo.GetIdByHackathonIdAsync(payload.HackathonId);
+        if (hackathon == null)
+        {
+            logger.LogWarning("Hackathon with ParticipantId={ParticipantHackathonId} not found.", payload.HackathonId);
+            return;
+        }
         
         var participants = await participantRepo.GetParticipantsForHackathonAsync(hackathon.Id);
+        if (participants == null || !participants.Any())
+        {
+            logger.LogWarning("No participants found for HackathonId={HackathonId}.", hackathon.Id);
+            return;
+        }
+        
         var participantDict = participants.ToDictionary(
-            p => (p.ParticipantId, p.Title, p.HackathonId),
+            p => (p.ParticipantId, p.Title),
             p => p.Id);
-
-        var teams = new List<Team>();
+        
+        var internalIdToParticipantId = participants.ToDictionary(p => p.Id, p => p.ParticipantId);
+        
+        var teamsToSave = new List<Team>();
+        var teamsForCalculation = new List<TeamDto>();
         foreach (var teamDto in payload.Teams)
         {
-            var teamleadId = teamDto.TeamLead.Id;
-            int juniorId = teamDto.Junior.Id;
-            
-            bool teamleadFound = participantDict.TryGetValue((teamleadId, ParticipantTitle.TeamLead, hackathon.Id), out int internalTeamLeadId);
-            bool juniorFound = participantDict.TryGetValue((juniorId, ParticipantTitle.Junior, hackathon.Id), out int internalJuniorId);
+            var teamleadParticipantId = teamDto.TeamLead.ParticipantId;
+            var juniorParticipantId = teamDto.Junior.ParticipantId;
+
+            bool teamleadFound = participantDict.TryGetValue((teamleadParticipantId, ParticipantTitle.TeamLead), out int internalTeamLeadId);
+            bool juniorFound = participantDict.TryGetValue((juniorParticipantId, ParticipantTitle.Junior), out int internalJuniorId);
 
             if (!teamleadFound || !juniorFound)
             {
-                logger.LogWarning("Cannot find internal IDs for TeamLeadId={ExternalTeamLeadId} or JuniorId={ExternalJuniorId} in HackathonExternalId={ExternalHackathonId}", 
-                    teamleadId, juniorId, hackathon.Id);
+                logger.LogWarning("Cannot find internal IDs for TeamLeadParticipantId={TeamLeadId} or JuniorParticipantId={JuniorId} in HackathonId={HackathonId}",
+                    teamleadParticipantId, juniorParticipantId, hackathon.Id);
                 continue;
             }
             
             var team = new Team
             {
-                HackathonId = hackathon.Id, 
-                TeamLeadId = internalTeamLeadId, 
-                JuniorId = internalJuniorId,
+                HackathonId = hackathon.Id,
+                TeamLeadId = internalTeamLeadId,
+                JuniorId = internalJuniorId 
             };
-
-            teams.Add(team);
+            teamsToSave.Add(team);
+            teamsForCalculation.Add(new TeamDto(teamDto.TeamLead, teamDto.Junior));
         }
-
-        await teamRepo.AddTeamsAsync(teams);
-        logger.LogInformation("Added {Count} teams to HackathonId={HackathonId}", teams.Count, hackathon.Id);
         
+        if (teamsToSave.Any())
+        {
+            await teamRepo.AddTeamsAsync(teamsToSave);
+            logger.LogInformation("Added {Count} teams to HackathonId={HackathonId}", teamsToSave.Count, hackathon.Id);
+        }
+        else
+        {
+            logger.LogWarning("No valid teams to save for HackathonId={HackathonId}.", hackathon.Id);
+            return;
+        }
         
         var wishlists = await wishlistRepo.GetWishlistsForHackathonAsync(hackathon.Id);
-        var teamLeadsWishlists = wishlists.Where(w => participants.Any(p => p.Id == w.ParticipantId && p.Title == ParticipantTitle.TeamLead));
-        var juniorsWishlists = wishlists.Where(w => participants.Any(p => p.Id == w.ParticipantId && p.Title == ParticipantTitle.Junior));
+        if (wishlists == null)
+        {
+            logger.LogWarning("No wishlists found for HackathonId={HackathonId}.", hackathon.Id);
+            wishlists = new List<Wishlist>();
+        }
+        
 
-        var meanSatisfaction = CalculateHarmonicMean(teams, teamLeadsWishlists, juniorsWishlists);
+        var teamLeadsWishlists = wishlists.Where(w => participants.Any(p => p.ParticipantId == w.ParticipantId && p.Title == ParticipantTitle.TeamLead)).ToList();
+        var juniorsWishlists = wishlists.Where(w => participants.Any(p => p.ParticipantId == w.ParticipantId && p.Title == ParticipantTitle.Junior)).ToList();
+        
+        var meanSatisfaction = CalculateHarmonicMean(teamsForCalculation, teamLeadsWishlists, juniorsWishlists);
         hackathon.MeanSatisfactionIndex = meanSatisfaction;
 
         await hackathonRepo.UpdateHackathonAsync(hackathon);
@@ -77,7 +105,7 @@ public class HRDirectorOrchestrationService(
     }
 
     private static double CalculateHarmonicMean(
-        IEnumerable<Team> teams,
+        IEnumerable<TeamDto> teams,
         IEnumerable<Wishlist> teamLeadsWishlists,
         IEnumerable<Wishlist> juniorsWishlists)
     {
@@ -103,7 +131,7 @@ public class HRDirectorOrchestrationService(
     }
 
     private static List<int> CalculateSatisfactionIndices(
-        IEnumerable<Team> teams,
+        IEnumerable<TeamDto> teams,
         IEnumerable<Wishlist> teamLeadsWishlists,
         IEnumerable<Wishlist> juniorsWishlists)
     {
@@ -111,18 +139,20 @@ public class HRDirectorOrchestrationService(
 
         foreach (var team in teams)
         {
-            var teamLeadWishlist = teamLeadsWishlists.FirstOrDefault(w => w.ParticipantId == team.TeamLeadId)?.DesiredParticipants;
-            var juniorWishlist = juniorsWishlists.FirstOrDefault(w => w.ParticipantId == team.JuniorId)?.DesiredParticipants;
+            var teamLeadParticipantId = team.TeamLead.ParticipantId;
+            var juniorParticipantId = team.Junior.ParticipantId;
 
+            var teamLeadWishlist = teamLeadsWishlists.FirstOrDefault(w => w.ParticipantId == teamLeadParticipantId)?.DesiredParticipants;
             if (teamLeadWishlist != null)
             {
-                int teamLeadSatisfaction = GetSatisfactionScore(teamLeadWishlist, team.JuniorId);
+                int teamLeadSatisfaction = GetSatisfactionScore(teamLeadWishlist, juniorParticipantId);
                 satisfactionIndices.Add(teamLeadSatisfaction);
             }
-
+            
+            var juniorWishlist = juniorsWishlists.FirstOrDefault(w => w.ParticipantId == juniorParticipantId)?.DesiredParticipants;
             if (juniorWishlist != null)
             {
-                int juniorSatisfaction = GetSatisfactionScore(juniorWishlist, team.TeamLeadId);
+                int juniorSatisfaction = GetSatisfactionScore(juniorWishlist, teamLeadParticipantId);
                 satisfactionIndices.Add(juniorSatisfaction);
             }
         }
@@ -130,9 +160,9 @@ public class HRDirectorOrchestrationService(
         return satisfactionIndices;
     }
 
-    private static int GetSatisfactionScore(int[] wishlist, int assignedPartner)
+    private static int GetSatisfactionScore(int[] wishlist, int assignedPartnerParticipantId)
     {
-        int position = Array.IndexOf(wishlist, assignedPartner);
+        int position = Array.IndexOf(wishlist, assignedPartnerParticipantId);
         return position >= 0 ? wishlist.Length - position : 0;
     }
 }

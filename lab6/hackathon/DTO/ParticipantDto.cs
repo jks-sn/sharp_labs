@@ -2,4 +2,4 @@
 
 namespace Dto;
 
-public record ParticipantDto(int Id, string Title, string Name);
+public record ParticipantDto(int ParticipantId, string Title, string Name);
